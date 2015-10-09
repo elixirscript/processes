@@ -1,39 +1,36 @@
 "use strict";
 
-import Scheduler, { SLEEP, RECEIVE, SEND } from "./scheduler";
+import ProcessManager from "./process_manager";
 
-self.s = new Scheduler();
-self.SLEEP = SLEEP;
-self.SEND = SEND;
-self.RECEIVE = RECEIVE;
+let manager = new ProcessManager();
 
 
-let pid1 = s.spawn(function*(){
+let pid1 = manager.spawn(function*(){
     while(true){
 
-      yield [RECEIVE, function(value){
+      yield manager.receive(function(value){
         return console.log(value);
-      }]
+      });
 
-      s.send(2, "message from 1");
+      manager.send(2, "message from 1");
     }
 });
 
-s.register("Sally", pid1);
+manager.register("Sally", pid1);
 
 
-let pid2 = s.spawn(function*(){
+let pid2 = manager.spawn(function*(){
   while(true){
     
-    s.send("Sally", "message from 2");
+    manager.send("Sally", "message from 2");
 
-    yield [RECEIVE, function(value){
-        return console.log(value);
-    }]
+    yield manager.receive(function(value){
+      return console.log(value);
+    });
   }
 });
 
 
-let pid3 = s.spawn(function*(){
+let pid3 = manager.spawn(function*(){
   yield 1;
 });

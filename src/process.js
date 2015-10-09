@@ -2,7 +2,8 @@
 
 /* @flow */
 import Mailbox from "./mailbox";
-import Scheduler, { NORMAL, SUSPEND, SLEEP, CONTINUE, SLEEPING, RUNNING, SUSPENDED, STOPPED, RECEIVE, SEND } from "./scheduler";
+import ProcessManager from "./process_manager";
+import States from "./states";
 
 const NOMSG = Symbol();
 
@@ -11,29 +12,29 @@ class Process {
   mailbox: Mailbox;
   func: Function;
   args: Array;
-  scheduler: Scheduler;
+  manager: ProcessManager;
   status: Symbol;
 
-  constructor(pid: Number, func: Function, args: Array, mailbox: Mailbox, scheduler: Scheduler){
+  constructor(pid: Number, func: Function, args: Array, mailbox: Mailbox, manager: ProcessManager){
     this.pid = pid;
     this.func = func;
     this.args = args;
     this.mailbox = mailbox;
-    this.scheduler = scheduler;
-    this.status = STOPPED;
+    this.manager = manager;
+    this.status = States.STOPPED;
   }
 
   start(){
     let machine = this.main();
     let step = machine.next();
 
-    this.status = RUNNING;
+    this.status = States.RUNNING;
     
     this.run(machine, step);
   }
 
   *main() {
-    let retval = NORMAL;
+    let retval = States.NORMAL;
 
     try {
       for(let v of this.func.apply(null, this.args)){
@@ -43,11 +44,11 @@ class Process {
       retval = e;
     }
 
-    this.scheduler.exit(this.pid, retval);
+    this.manager.exit(this.pid, retval);
   }
 
   exit(reason){
-    this.scheduler.remove_proc(this.pid, reason);
+    this.manager.remove_proc(this.pid, reason);
   }
 
   receive(fun){
@@ -70,7 +71,7 @@ class Process {
 
   run(machine, step){
     const function_scope = this;
-    this.scheduler.set_current(this);
+    this.manager.set_current(this);
 
     if(!step.done){
       let value = step.value;
@@ -78,38 +79,45 @@ class Process {
       if(typeof value === 'symbol'){
         switch(value){
           case SUSPEND:
-            this.scheduler.suspend(function() { 
+            this.manager.suspend(function() { 
               function_scope.run(machine, step); 
             });
             return;
           default:
-            this.scheduler.queue(function() { 
+            this.manager.queue(function() { 
               function_scope.run(machine, machine.next()); 
             });
             return;
         }      
-      }else if(Array.isArray(value) && value[0] === SLEEP){
+      }else if(Array.isArray(value) && value[0] === States.SLEEP){
 
-        this.scheduler.sleep(function() { 
+        this.manager.delay(function() { 
           function_scope.run(machine, machine.next()); 
         }, value[1]);
 
-      }else if(Array.isArray(value) && value[0] === RECEIVE){
+      }else if(Array.isArray(value) && value[0] === States.RECEIVE){
+        if(value[2] != null && value[2] < Date.now()){
+          let result = value[3]();
 
-        let result = function_scope.receive(value[1]);
-
-        if(result === NOMSG){
-          this.scheduler.suspend(function() { 
-            function_scope.run(machine, step); 
-          });         
-        }else{
-          this.scheduler.queue(function() { 
+          this.manager.queue(function() { 
             function_scope.run(machine, machine.next(result)); 
-          });          
+          });
+        }else{
+          let result = function_scope.receive(value[1]);
+
+          if(result === NOMSG){
+            this.manager.suspend(function() { 
+              function_scope.run(machine, step); 
+            });         
+          }else{
+            this.manager.queue(function() { 
+              function_scope.run(machine, machine.next(result)); 
+            });          
+          }
         }
 
       }else{
-        this.scheduler.queue(function() { 
+        this.manager.queue(function() { 
           function_scope.run(machine, machine.next()); 
         });        
       }
