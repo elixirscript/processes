@@ -2,7 +2,7 @@
 
 /* @flow */
 import Mailbox from "./mailbox";
-import ProcessManager from "./process_manager";
+import Scheduler from "./scheduler";
 import States from "./states";
 
 const NOMSG = Symbol();
@@ -12,15 +12,15 @@ class Process {
   mailbox: Mailbox;
   func: Function;
   args: Array;
-  manager: ProcessManager;
+  scheduler: Scheduler;
   status: Symbol;
 
-  constructor(pid: Number, func: Function, args: Array, mailbox: Mailbox, manager: ProcessManager){
+  constructor(pid: Number, func: Function, args: Array, mailbox: Mailbox, scheduler: Scheduler){
     this.pid = pid;
     this.func = func;
     this.args = args;
     this.mailbox = mailbox;
-    this.manager = manager;
+    this.scheduler = scheduler;
     this.status = States.STOPPED;
   }
 
@@ -44,11 +44,11 @@ class Process {
       retval = e;
     }
 
-    this.manager.exit(this.pid, retval);
+    this.scheduler.exit(this.pid, retval);
   }
 
   exit(reason){
-    this.manager.remove_proc(this.pid, reason);
+    this.scheduler.remove_proc(this.pid, reason);
   }
 
   receive(fun){
@@ -60,7 +60,7 @@ class Process {
         value = fun(messages[i]);
         this.mailbox.removeAt(i);
       }catch(e){
-        if(!e instanceof MatchError){
+        if(!e instanceof Patterns.MatchError){
           this.exit(e);
         }
       }
@@ -71,55 +71,43 @@ class Process {
 
   run(machine, step){
     const function_scope = this;
-    this.manager.set_current(this);
+    this.scheduler.set_current(this);
 
     if(!step.done){
       let value = step.value;
 
-      if(typeof value === 'symbol'){
-        switch(value){
-          case SUSPEND:
-            this.manager.suspend(function() { 
-              function_scope.run(machine, step); 
-            });
-            return;
-          default:
-            this.manager.queue(function() { 
-              function_scope.run(machine, machine.next()); 
-            });
-            return;
-        }      
-      }else if(Array.isArray(value) && value[0] === States.SLEEP){
+      if(Array.isArray(value) && (value[0] === States.SLEEP || value[0] === States.RECEIVE)){
+        if(value[0] === States.SLEEP){
 
-        this.manager.delay(function() { 
-          function_scope.run(machine, machine.next()); 
-        }, value[1]);
+          this.scheduler.delay(function() { 
+            function_scope.run(machine, machine.next()); 
+          }, value[1]);
 
-      }else if(Array.isArray(value) && value[0] === States.RECEIVE){
-        if(value[2] != null && value[2] < Date.now()){
-          let result = value[3]();
+        }else if(value[0] === States.RECEIVE){
+          if(value[2] != null && value[2] < Date.now()){
+            let result = value[3]();
 
-          this.manager.queue(function() { 
-            function_scope.run(machine, machine.next(result)); 
-          });
-        }else{
-          let result = function_scope.receive(value[1]);
-
-          if(result === NOMSG){
-            this.manager.suspend(function() { 
-              function_scope.run(machine, step); 
-            });         
-          }else{
-            this.manager.queue(function() { 
+            this.scheduler.queue(function() { 
               function_scope.run(machine, machine.next(result)); 
-            });          
-          }
-        }
+            });
+          }else{
+            let result = function_scope.receive(value[1]);
 
+            if(result === NOMSG){
+              this.scheduler.suspend(function() { 
+                function_scope.run(machine, step); 
+              });         
+            }else{
+              this.scheduler.queue(function() { 
+                function_scope.run(machine, machine.next(result)); 
+              });          
+            }
+          }
+        }      
       }else{
-        this.manager.queue(function() { 
+        this.scheduler.queue(function() { 
           function_scope.run(machine, machine.next()); 
-        });        
+        });  
       }
     }
   }

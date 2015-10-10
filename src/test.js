@@ -1,36 +1,34 @@
 "use strict";
 
-import ProcessManager from "./process_manager";
+import Scheduler from "./scheduler";
+let scheduler = new Scheduler();
 
-let manager = new ProcessManager();
-
-
-let pid1 = manager.spawn(function*(){
+let pid1 = scheduler.spawn(function*(){
     while(true){
 
-      yield manager.receive(function(value){
+      yield scheduler.receive(function(value){
         return console.log(value);
       });
 
-      manager.send(2, "message from 1");
+      scheduler.send(2, "message from 1");
     }
 });
 
-manager.register("Sally", pid1);
+scheduler.register("Sally", pid1);
 
 
-let pid2 = manager.spawn(function*(){
+let pid2 = scheduler.spawn(function*(){
   while(true){
     
-    manager.send("Sally", "message from 2");
+    scheduler.send("Sally", "message from 2");
 
-    yield manager.receive(function(value){
+    yield scheduler.receive(function(value){
       return console.log(value);
     });
   }
 });
 
 
-let pid3 = manager.spawn(function*(){
+let pid3 = scheduler.spawn(function*(){
   yield 1;
 });
