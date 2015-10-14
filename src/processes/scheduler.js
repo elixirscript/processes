@@ -82,11 +82,6 @@ class Scheduler {
     }
   }
 
-  switch_to_next_process(){
-    let pid = this.task_queue.getNextPid();
-    this.set_current(pid);
-  }
-
   add_proc(fun, args, linked){
     this.process_counter = this.process_counter + 1;
     let newpid = this.process_counter;
