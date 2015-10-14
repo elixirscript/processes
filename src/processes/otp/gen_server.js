@@ -1,36 +1,34 @@
 function start(module, args){
-  let pid = start_process(module, args);
-  return [Symbol.for("ok"), pid];
+  return [Symbol.for("ok"), self.scheduler.spawn(start_process(module, args))];
 }
 
 function start_link(module, args){
-  let pid = start_process(module, args);
-  return [Symbol.for("ok"), pid];
+  return [Symbol.for("ok"), self.scheduler.spawn_link(start_process(module, args))];
 }
 
 function start_process(module, args){
-  return self.scheduler.spawn(function*(){
+  return function*(){
     let [ok, state] = module.init.apply(null, [args]);
-    yield self.scheduler.current_process.dictionary["state"] = state;
+    yield self.scheduler.put("state", state);
 
     while(true){
       yield self.scheduler.receive(function(args){
         if(args[0] === "call"){
-          let result = module.handle_call(args[1], args[2], self.scheduler.current_process.dictionary["state"]);
-          self.scheduler.current_process.dictionary["state"] = result[2];
+          let result = module.handle_call(args[1], args[2], self.scheduler.get("state"));
+          self.scheduler.put("state", result[2]);
 
           self.scheduler.send(args[2], result[1]);
 
         }else if(args[0] === "cast"){
-          let result = module.handle_cast(args[1], self.scheduler.current_process.dictionary["state"]);
-          self.scheduler.current_process.dictionary["state"] = result[1];
+          let result = module.handle_cast(args[1], self.scheduler.get("state"));
+          self.scheduler.put("state", result[1]);
 
           self.scheduler.send(args[2], Symbol.for("ok"));
 
         }        
       });
     }
-  });
+  }
 }
 
 function* call(server, request){

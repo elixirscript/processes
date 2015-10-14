@@ -36,12 +36,32 @@ class Scheduler {
     }
   }
 
-  spawn(fun, args){
-    return this.add_proc(fun, args, false).pid;
+  spawn(...args){
+    if(args.length === 1){
+      let fun = args[0];
+      return this.add_proc(fun, [], false).pid;
+
+    }else if(args.length === 3){
+      let mod = args[0];
+      let fun = args[1];
+      let the_args = args[2];
+
+      return this.add_proc(mod[fun], the_args, false).pid;
+    }
   }
 
-  spawn_link(fun, args){
-    return this.add_proc(fun, args, true).pid; 
+  spawn_link(...args){
+    if(args.length === 1){
+      let fun = args[0];
+      return this.add_proc(fun, [], false).pid;
+
+    }else if(args.length === 3){
+      let mod = args[0];
+      let fun = args[1];
+      let the_args = args[2];
+
+      return this.add_proc(mod[fun], the_args, false).pid;
+    }
   }
 
   link(pid){
@@ -92,13 +112,9 @@ class Scheduler {
 
     if(this.links.get(pid)){
       for (let linkpid in this.links.get(pid).entries()) {
-         linkpid = Number(linkpid);
-
-         if (exitreason != Normal) {
-            this.pids.get(linkpid).deliver({ Signal: States.EXIT, From: pid, Reason: exitreason });
-         }
-
-         this.links.get(linkpid).delete(pid);
+        linkpid = Number(linkpid);
+        this.exit(linkpid, exitreason);
+        this.links.get(linkpid).delete(pid);
       }
 
       this.links.delete(pid);
@@ -194,22 +210,52 @@ class Scheduler {
     this.task_queue.queue(the_pid, fun); 
   }
 
-  exit(...args){
-    switch(args.length) {
-    case 2:
-       if (args[1] != States.NORMAL) {
-        console.log(args);
-        this.mailboxes.get(args[0]).deliver({ Signal: States.EXIT, From: this.pid(), Reason: args[1] });
-       }else{
-        this.remove_proc(args[0], args[1]);       
-       }
-       break;
-    case 1:
-       this.current_process.exit(args[0]);
-       break;
-    case 0:
-       this.current_process.exit(States.Normal);
-       break;
+  exit(one, two){
+    if(two){
+      let pid = one;
+      let reason = two;
+
+      let process = this.pids.get(this.pidof(pid));
+      if((process && process.is_trapping_exits()) || reason === States.KILL || reason === States.NORMAL){
+        this.mailboxes.get(process.pid).deliver([States.EXIT, this.pid(), reason ]);
+      }else{
+        process.signal(reason); 
+      }          
+    }else{
+      let reason = one;
+      this.current_process.signal(reason);       
+    }
+  }
+
+  error(reason){
+    this.current_process.signal(reason);
+  }
+
+  process_flag(flag, value){
+    this.current_process.process_flag(flag, value);
+  }
+
+  put(key, value){
+    this.current_process.dict[key] = value;
+  }
+
+  get(key){
+    if(key != null){
+      return this.current_process.dict[key];
+    }else{
+      return this.current_process.dict;
+    }
+  }
+
+  get_keys(){
+    return Object.keys(this.current_process.dict);
+  }
+
+  erase(key){
+    if(key != null){
+      delete this.current_process.dict[key];
+    }else{
+      this.current_process.dict = {};
     }
   }
 }

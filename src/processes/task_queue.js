@@ -46,6 +46,7 @@ class TaskQueue {
           try{
             result = task();
           }catch(e){
+            console.error(e);
             result = e;
           }
 

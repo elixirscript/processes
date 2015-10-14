@@ -1,5 +1,6 @@
 export default {
   NORMAL: Symbol(),
+  KILL: Symbol(),
   SUSPEND: Symbol(),
   CONTINUE: Symbol(),
   RECEIVE: Symbol(),
