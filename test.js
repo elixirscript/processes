@@ -1,9 +1,7 @@
 "use strict";
 
-import Scheduler from "./processes/scheduler";
+import { Scheduler, GenServer } from "./src/processes.js";
 self.scheduler = self.scheduler || new Scheduler();
-
-import GenServer from "./processes/otp/gen_server";
 
 const Stack = {
   init: function(args){
