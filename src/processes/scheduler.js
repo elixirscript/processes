@@ -182,7 +182,7 @@ class Scheduler {
   }
 
   queue(fun, pid){
-    const the_pid = pid !== null ? pid : this.current_process.pid;
+    const the_pid = pid != null ? pid : this.current_process.pid;
     this.task_queue.queue(the_pid, fun); 
   }
 

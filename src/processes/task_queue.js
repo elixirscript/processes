@@ -30,12 +30,6 @@ class TaskQueue {
     this.isRunning = false;
   }
 
-  getNextPid(){
-    const pid = this.tasks[Object.keys(this.tasks)[0]][0];
-    console.log(pid);
-    return pid;
-  }
-
   runTask(taskId){
     if (this.isRunning) {
       this.invokeLater(() => { this.runTask(taskId); });
@@ -50,7 +44,6 @@ class TaskQueue {
           let result;
 
           try{
-            
             result = task();
           }catch(e){
             result = e;
