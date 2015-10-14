@@ -1,7 +1,7 @@
 "use strict";
 
 import Scheduler from "./processes/scheduler";
-self.scheduler = new Scheduler();
+self.scheduler = self.scheduler || new Scheduler();
 
 import GenServer from "./processes/otp/gen_server";
 
