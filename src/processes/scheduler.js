@@ -15,7 +15,7 @@ class Scheduler {
     this.names = new Map();
     this.links = new Map();
 
-    const throttle = 10; //ms between queued tasks
+    const throttle = 5; //ms between queued tasks
     this.current_process = null;
     this.task_queue = new TaskQueue(throttle);
     this.suspended = new Map();
@@ -26,6 +26,14 @@ class Scheduler {
           yield scheduler_scope.sleep(10000);
         }
     });
+  }
+
+  static * async(fun, args, context = null){
+    if(fun.constructor.name === "GeneratorFunction"){
+      return yield* fun.apply(context, args);
+    }else{
+      return fun.apply(context, args);
+    }
   }
 
   spawn(fun, args){
@@ -190,9 +198,10 @@ class Scheduler {
     switch(args.length) {
     case 2:
        if (args[1] != States.NORMAL) {
-          this.mailboxes.get(args[0]).deliver({ Signal: States.EXIT, From: this.pid(), Reason: args[1] });
+        console.log(args);
+        this.mailboxes.get(args[0]).deliver({ Signal: States.EXIT, From: this.pid(), Reason: args[1] });
        }else{
-          this.remove_proc(args[0], args[1]);       
+        this.remove_proc(args[0], args[1]);       
        }
        break;
     case 1:
