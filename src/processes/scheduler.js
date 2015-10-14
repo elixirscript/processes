@@ -9,7 +9,7 @@ import TaskQueue from "./task_queue";
 class Scheduler {
 
   constructor(){
-    this.process_counter = 0;
+    this.process_counter = -1;
     this.pids = new Map();
     this.mailboxes = new Map();
     this.names = new Map();
@@ -19,18 +19,20 @@ class Scheduler {
     this.current_process = null;
     this.task_queue = new TaskQueue(throttle);
     this.suspended = new Map();
+
+    let scheduler_scope = this;
+    this.main_process = this.spawn(function*(){
+        while(true){
+          yield scheduler_scope.sleep(10000);
+        }
+    });
   }
 
-  set_current(process){
-    this.current_process = process;
-    this.current_process.status = States.RUNNING;
-  }
-
-  spawn(fun, ...args){
+  spawn(fun, args){
     return this.add_proc(fun, args, false).pid;
   }
 
-  spawn_link(fun, ...args){
+  spawn_link(fun, args){
     return this.add_proc(fun, args, true).pid; 
   }
 
@@ -42,6 +44,19 @@ class Scheduler {
   unlink(pid){
     this.links.get(this.current_process.pid).delete(pid);
     this.links.get(pid).delete(this.current_process.pid);   
+  }
+
+  set_current(id){
+    let pid = this.pidof(id);
+    if(pid !== null){
+      this.current_process = this.pids.get(pid);
+      this.current_process.status = States.RUNNING;
+    }
+  }
+
+  switch_to_next_process(){
+    let pid = this.task_queue.getNextPid();
+    this.set_current(pid);
   }
 
   add_proc(fun, args, linked){
@@ -67,17 +82,19 @@ class Scheduler {
     this.unregister(pid);
     this.task_queue.removePid(pid);
 
-    for (let linkpid in this.links.get(pid).entries()) {
-       linkpid = Number(linkpid);
+    if(this.links.get(pid)){
+      for (let linkpid in this.links.get(pid).entries()) {
+         linkpid = Number(linkpid);
 
-       if (exitreason != Normal) {
-          this.pids.get(linkpid).deliver({ Signal: States.EXIT, From: pid, Reason: exitreason });
-       }
+         if (exitreason != Normal) {
+            this.pids.get(linkpid).deliver({ Signal: States.EXIT, From: pid, Reason: exitreason });
+         }
 
-       this.links.get(linkpid).delete(pid);
+         this.links.get(linkpid).delete(pid);
+      }
+
+      this.links.delete(pid);
     }
-
-    this.links.delete(pid);
   }
 
   register(name, pid){
@@ -112,8 +129,7 @@ class Scheduler {
     } else {
        let pid = this.registered(id);
        if (pid === null)
-          throw("Er: Process name not registered: " + 
-                id + " (" + typeof(id) + ")");
+          throw("Process name not registered: " + id + " (" + typeof(id) + ")");
        return pid;
     }
   }
@@ -165,8 +181,9 @@ class Scheduler {
     this.task_queue.queueFuture(this.current_process.pid, time, fun);
   }
 
-  queue(fun){
-    this.task_queue.queue(this.current_process.pid, fun);  
+  queue(fun, pid){
+    const the_pid = pid !== null ? pid : this.current_process.pid;
+    this.task_queue.queue(the_pid, fun); 
   }
 
   exit(...args){

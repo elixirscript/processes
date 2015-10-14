@@ -1,34 +1,60 @@
 "use strict";
 
-import Scheduler from "./scheduler";
-let scheduler = new Scheduler();
+import Scheduler from "./processes/scheduler";
+self.scheduler = new Scheduler();
 
-let pid1 = scheduler.spawn(function*(){
-    while(true){
+import GenServer from "./processes/otp/gen_server";
 
-      yield scheduler.receive(function(value){
-        return console.log(value);
-      });
+const Stack = {
+  init: function(args){
+    return [Symbol.for("ok"), args];
+  },
 
-      scheduler.send(2, "message from 1");
-    }
-});
-
-scheduler.register("Sally", pid1);
+  handle_call: function(action, pid, state){
+    return [Symbol.for("reply"), state[0], state.slice(1)];
+  },
 
 
-let pid2 = scheduler.spawn(function*(){
-  while(true){
-    
-    scheduler.send("Sally", "message from 2");
-
-    yield scheduler.receive(function(value){
-      return console.log(value);
-    });
+  handle_cast: function(action, state){
+    return [Symbol.for("noreply"), [action[1]].concat(state)];
   }
+}
+
+self.scheduler.spawn(function*(){
+  const [ok, pid] = GenServer.start(Stack, ["hello"]);
+
+  let a = yield* GenServer.call(pid, "pop");
+  console.log(a);
+
+  let b = yield* GenServer.cast(pid, ["push", "world"]);
+  console.log(b);
+
+  let c = yield* GenServer.call(pid, "pop");
+  console.log(c);
 });
 
 
-let pid3 = scheduler.spawn(function*(){
-  yield 1;
-});
+//var pid1 = scheduler.spawn(function*(){
+//    while(true){
+
+//      yield scheduler.receive(function(value){
+//        return console.log(value);
+//      });
+
+//      scheduler.send(pid2, "message from 1");
+//    }
+//});
+
+//scheduler.register("Sally", pid1);
+//
+
+//var pid2 = scheduler.spawn(function*(){
+//  while(true){
+//    
+//    scheduler.send("Sally", "message from 2");
+
+//    yield scheduler.receive(function(value){
+//      return console.log(value);
+//    });
+//  }
+//});

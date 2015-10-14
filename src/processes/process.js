@@ -22,24 +22,24 @@ class Process {
     this.mailbox = mailbox;
     this.scheduler = scheduler;
     this.status = States.STOPPED;
+    this.dictionary = {};
   }
 
   start(){
+    const function_scope = this;
     let machine = this.main();
-    let step = machine.next();
 
-    this.status = States.RUNNING;
-    
-    this.run(machine, step);
+    this.scheduler.queue(function() {
+      function_scope.scheduler.set_current(function_scope.pid); 
+      function_scope.run(machine, machine.next()); 
+    }, this.pid);  
   }
 
   *main() {
     let retval = States.NORMAL;
 
     try {
-      for(let v of this.func.apply(null, this.args)){
-        yield v;
-      }
+      yield* this.func.apply(null, this.args);
     } catch(e) {
       retval = e;
     }
@@ -60,9 +60,7 @@ class Process {
         value = fun(messages[i]);
         this.mailbox.removeAt(i);
       }catch(e){
-        if(!e instanceof Patterns.MatchError){
-          this.exit(e);
-        }
+        this.exit(e);
       }
     }
 
@@ -71,15 +69,15 @@ class Process {
 
   run(machine, step){
     const function_scope = this;
-    this.scheduler.set_current(this);
-
+    
     if(!step.done){
       let value = step.value;
 
       if(Array.isArray(value) && (value[0] === States.SLEEP || value[0] === States.RECEIVE)){
         if(value[0] === States.SLEEP){
 
-          this.scheduler.delay(function() { 
+          this.scheduler.delay(function() {
+            function_scope.scheduler.set_current(function_scope.pid); 
             function_scope.run(machine, machine.next()); 
           }, value[1]);
 
@@ -87,7 +85,8 @@ class Process {
           if(value[2] != null && value[2] < Date.now()){
             let result = value[3]();
 
-            this.scheduler.queue(function() { 
+            this.scheduler.queue(function() {
+              function_scope.scheduler.set_current(function_scope.pid); 
               function_scope.run(machine, machine.next(result)); 
             });
           }else{
@@ -95,18 +94,21 @@ class Process {
 
             if(result === NOMSG){
               this.scheduler.suspend(function() { 
+                function_scope.scheduler.set_current(function_scope.pid); 
                 function_scope.run(machine, step); 
               });         
             }else{
               this.scheduler.queue(function() { 
+                function_scope.scheduler.set_current(function_scope.pid); 
                 function_scope.run(machine, machine.next(result)); 
               });          
             }
           }
         }      
       }else{
-        this.scheduler.queue(function() { 
-          function_scope.run(machine, machine.next()); 
+        this.scheduler.queue(function() {
+          function_scope.scheduler.set_current(function_scope.pid); 
+          function_scope.run(machine, machine.next(value)); 
         });  
       }
     }

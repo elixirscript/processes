@@ -6,7 +6,8 @@ System.config({
     "optional": [
       "runtime",
       "optimisation.modules.system"
-    ]
+    ],
+    "blacklist": ["regenerator"]
   },
   paths: {
     "github:*": "jspm_packages/github/*",
