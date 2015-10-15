@@ -44,7 +44,7 @@ class Process {
     const function_scope = this;
     let machine = this.main();
 
-    this.system.queue(function() {
+    this.system.schedule(function() {
       function_scope.system.set_current(function_scope.pid); 
       function_scope.run(machine, machine.next()); 
     }, this.pid);  
@@ -112,7 +112,7 @@ class Process {
 
         let result = value[3]();
 
-        this.system.queue(function() { 
+        this.system.schedule(function() { 
           function_scope.system.set_current(function_scope.pid); 
           function_scope.run(machine, machine.next(result)); 
         });
@@ -127,14 +127,14 @@ class Process {
             function_scope.run(machine, step); 
           });         
         }else{
-          this.system.queue(function() { 
+          this.system.schedule(function() { 
             function_scope.system.set_current(function_scope.pid); 
             function_scope.run(machine, machine.next(result)); 
           });          
         }
 
       }else{
-        this.system.queue(function() { 
+        this.system.schedule(function() { 
           function_scope.system.set_current(function_scope.pid); 
           function_scope.run(machine, machine.next(value)); 
         });  

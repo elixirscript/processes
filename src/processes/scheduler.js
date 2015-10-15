@@ -1,10 +1,10 @@
 "use strict";
 
-//TaskQueue. Borrowed and modified from RxJS's Default Scheduler.
+//Scheduler. Borrowed and modified from RxJS's Default Scheduler.
 //While it is probably more robust, this should fit the needs for
 //this project.
 
-class TaskQueue {
+class Scheduler {
   constructor(throttle = 0){
     this.nextTaskId = 1;
     this.tasks = {}
@@ -12,7 +12,7 @@ class TaskQueue {
     this.invokeLater = function (callback) { setTimeout(callback, throttle); }
   }
 
-  removeFromTaskQueue(taskId){
+  removeFromScheduler(taskId){
     delete this.tasks[taskId];
   }
 
@@ -23,7 +23,7 @@ class TaskQueue {
 
     for(let taskId of Object.keys(this.tasks)){
       if(this.tasks[taskId] && this.tasks[taskId][0] === pid){
-        this.removeFromTaskQueue(taskId);
+        this.removeFromScheduler(taskId);
       }
     }
 
@@ -50,7 +50,7 @@ class TaskQueue {
             result = e;
           }
 
-          this.removeFromTaskQueue(taskId);
+          this.removeFromScheduler(taskId);
           this.isRunning = false;
 
           if (result instanceof Error) {
@@ -62,7 +62,7 @@ class TaskQueue {
     }
   }
 
-  addToTaskQueue(pid, task, dueTime = 0) {
+  addToScheduler(pid, task, dueTime = 0) {
     let id = this.nextTaskId ++;
     this.tasks[id] = [ pid, task ];
 
@@ -75,13 +75,13 @@ class TaskQueue {
     return id;
   };
 
-  queue(pid, task){
-    this.addToTaskQueue(pid, () => { task(); });
+  schedule(pid, task){
+    this.addToScheduler(pid, () => { task(); });
   }
 
-  queueFuture(pid, dueTime, task){
-    this.addToTaskQueue(pid, () => { task(); }, dueTime);
+  scheduleFuture(pid, dueTime, task){
+    this.addToScheduler(pid, () => { task(); }, dueTime);
   }
 }
 
-export default TaskQueue;
+export default Scheduler;

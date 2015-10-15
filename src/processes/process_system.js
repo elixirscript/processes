@@ -4,7 +4,7 @@
 import Mailbox from "./mailbox";
 import Process from "./process";
 import States from "./states";
-import TaskQueue from "./task_queue";
+import Scheduler from "./scheduler";
 
 class ProcessSystem {
 
@@ -15,9 +15,9 @@ class ProcessSystem {
     this.names = new Map();
     this.links = new Map();
 
-    const throttle = 5; //ms between queued tasks
+    const throttle = 5; //ms between scheduled tasks
     this.current_process = null;
-    this.task_queue = new TaskQueue(throttle);
+    this.scheduler = new Scheduler(throttle);
     this.suspended = new Map();
 
     let process_system_scope = this;
@@ -103,7 +103,7 @@ class ProcessSystem {
   remove_proc(pid, exitreason){
     this.pids.delete(pid);
     this.unregister(pid);
-    this.task_queue.removePid(pid);
+    this.scheduler.removePid(pid);
 
     if(this.links.get(pid)){
       for (let linkpid in this.links.get(pid).entries()) {
@@ -162,7 +162,7 @@ class ProcessSystem {
       if(this.suspended.has(pid)){
         let fun = this.suspended.get(pid);
         this.suspended.delete(pid);
-        this.queue(fun);
+        this.schedule(fun);
       }
     }
 
@@ -197,12 +197,12 @@ class ProcessSystem {
 
   delay(fun, time){
     this.current_process.status = States.SLEEPING;
-    this.task_queue.queueFuture(this.current_process.pid, time, fun);
+    this.scheduler.scheduleFuture(this.current_process.pid, time, fun);
   }
 
-  queue(fun, pid){
+  schedule(fun, pid){
     const the_pid = pid != null ? pid : this.current_process.pid;
-    this.task_queue.queue(the_pid, fun); 
+    this.scheduler.schedule(the_pid, fun); 
   }
 
   exit(one, two){
