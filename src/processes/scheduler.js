@@ -28,7 +28,7 @@ class Scheduler {
     });
   }
 
-  static * async(fun, args, context = null){
+  static * run(fun, args, context = null){
     if(fun.constructor.name === "GeneratorFunction"){
       return yield* fun.apply(context, args);
     }else{
@@ -53,14 +53,14 @@ class Scheduler {
   spawn_link(...args){
     if(args.length === 1){
       let fun = args[0];
-      return this.add_proc(fun, [], false).pid;
+      return this.add_proc(fun, [], true).pid;
 
     }else if(args.length === 3){
       let mod = args[0];
       let fun = args[1];
       let the_args = args[2];
 
-      return this.add_proc(mod[fun], the_args, false).pid;
+      return this.add_proc(mod[fun], the_args, true).pid;
     }
   }
 
@@ -93,7 +93,7 @@ class Scheduler {
     this.links.set(newpid, new Set());
 
     if(linked){
-      link(newpid);
+      this.link(newpid);
     }
 
     newproc.start();

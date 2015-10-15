@@ -19,15 +19,15 @@ const Stack = {
 }
 
 self.scheduler.spawn(function*(){
-  const [ok, pid] = yield* Scheduler.async(GenServer.start, [Stack, ["hello"]]);
+  const [ok, pid] = yield* Scheduler.run(GenServer.start, [Stack, ["hello"]]);
 
-  let a = yield* Scheduler.async(GenServer.call, [pid, "pop"]);
+  let a = yield* Scheduler.run(GenServer.call, [pid, "pop"]);
   console.log(a);
 
-  let b = yield* Scheduler.async(GenServer.cast, [pid, ["push", "world"]]);
+  let b = yield* Scheduler.run(GenServer.cast, [pid, ["push", "world"]]);
   console.log(b);
 
-  let c = yield* Scheduler.async(GenServer.call, [pid, "pop"]);
+  let c = yield* Scheduler.run(GenServer.call, [pid, "pop"]);
   console.log(c);
 });
 

@@ -11,22 +11,42 @@ function start_process(module, args){
     let [ok, state] = module.init.apply(null, [args]);
     yield self.scheduler.put("state", state);
 
-    while(true){
-      yield self.scheduler.receive(function(args){
-        if(args[0] === "call"){
-          let result = module.handle_call(args[1], args[2], self.scheduler.get("state"));
-          self.scheduler.put("state", result[2]);
+    try{
+      while(true){
+        yield self.scheduler.receive(function(args){
+          let command = args[0];
 
-          self.scheduler.send(args[2], result[1]);
+          switch(command){
+            case "call":
+              var request = args[1];
+              var sender = args[2];
 
-        }else if(args[0] === "cast"){
-          let result = module.handle_cast(args[1], self.scheduler.get("state"));
-          self.scheduler.put("state", result[1]);
+              var [reply, response, new_state] = module.handle_call(request, sender, self.scheduler.get("state"));
+              self.scheduler.put("state", new_state);
 
-          self.scheduler.send(args[2], Symbol.for("ok"));
+              self.scheduler.send(sender, response);
+              break;
 
-        }        
-      });
+            case "cast":
+              var request = args[1];
+              var sender = args[2];
+
+              var [reply, new_state] = module.handle_cast(request, self.scheduler.get("state"));
+
+              self.scheduler.put("state", new_state);
+              self.scheduler.send(args[2], Symbol.for("ok"));
+
+              break;
+
+            case "stop":
+              throw "stop";
+          }       
+        });
+      }
+    }catch(e){
+      if(e !== "stop"){
+        throw e;
+      }
     }
   }
 }
@@ -47,4 +67,8 @@ function* cast(server, request){
   });  
 }
 
-export default { start, start_link, call, cast };
+function stop(server, request){
+  self.scheduler.send(server, ["stop"]); 
+}
+
+export default { start, start_link, call, cast, stop };
