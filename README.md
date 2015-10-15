@@ -16,7 +16,7 @@ to each other.
 * First, import the Scheduler create a new instance of one.
   ```javascript
     import { Scheduler } from "processes";
-    let scheduler = self.scheduler || new Scheduler();
+    let scheduler = new Scheduler();
   ```
   
 * Now you can spawn processes using the scheduler. 
