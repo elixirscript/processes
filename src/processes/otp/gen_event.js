@@ -1,15 +1,15 @@
 function start(options = []){
-  return [Symbol.for("ok"), self.scheduler.spawn(start_process())];
+  return [Symbol.for("ok"), self.system.spawn(start_process())];
 }
 
 function start_link(options = []){
-  return [Symbol.for("ok"), self.scheduler.spawn_link(start_process())];
+  return [Symbol.for("ok"), self.system.spawn_link(start_process())];
 }
 
 function start_process(){
   return function*(){
     while(true){
-      yield self.scheduler.receive(function(args){
+      yield self.system.receive(function(args){
         switch(args[0]){
           case "add_handler":
             break;

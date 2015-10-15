@@ -1,4 +1,4 @@
-Experiment to reproduce erlang style processes in browser. The api follows the one from Erlang. All are found on the `Scheduler` class
+Experiment to reproduce erlang style processes in browser. The api follows the one from Erlang. All are found on the `ProcessSystem` class
     
 
 ### Running Examples
@@ -13,35 +13,35 @@ to each other.
 
 #### Usage
 
-* First, import the Scheduler create a new instance of one.
+* First, import the ProcessSystem create a new instance of one.
   ```javascript
-    import { Scheduler } from "processes";
-    let scheduler = new Scheduler();
+    import { ProcessSystem } from "processes";
+    let system = new ProcessSystem();
   ```
   
-* Now you can spawn processes using the scheduler. 
+* Now you can spawn processes using the system. 
 
     A process will switch to other processes when yield is used and will run until it completes.
     
     ```javascript
-    var pid1 = scheduler.spawn(function*(){
+    var pid1 = system.spawn(function*(){
         while(true){
     
-          yield scheduler.receive(function(value){
+          yield system.receive(function(value){
             return console.log(value);
           });
     
-          scheduler.send(pid2, "message from 1");
+          system.send(pid2, "message from 1");
         }
     });
     
-    scheduler.register("Sally", pid1);
+    system.register("Sally", pid1);
     
-    var pid2 = scheduler.spawn(function*(){
+    var pid2 = system.spawn(function*(){
       while(true){
-        scheduler.send("Sally", "message from 2");
+        system.send("Sally", "message from 2");
     
-        yield scheduler.receive(function(value){
+        yield system.receive(function(value){
           return console.log(value);
         });
       }
@@ -51,7 +51,7 @@ to each other.
 
 ### API
 
-* Scheduler
+* ProcessSystem
     * `spawn(fun*) : pid` - Starts a process represented by the given generator function
     * `spawn(module, fun, args) : pid` - Starts a process using the generator function from the specified module
     * `link(pid) : void` - links the current process with the process from the given pid
@@ -76,7 +76,7 @@ to each other.
     * `erase(key)` - Removes the key and the associated value from the current process`s dictionary
     * `erase()` - Removes all entries from the current process's dictionary
 
-* `Scheduler.run(fun, args, context = null)` - A static generator function used to wrap a normal function or generator. If fun is a function, it returns the value, if it's a generator, then it delegates yielding to the generator.
+* `ProcessSystem.run(fun, args, context = null)` - A static generator function used to wrap a normal function or generator. If fun is a function, it returns the value, if it's a generator, then it delegates yielding to the generator.
 
 * GenServer
     * `start(module, args)` - Starts a GenServer with the given module and args
@@ -94,8 +94,8 @@ to each other.
 An example of a Stack using a GenServer
 
 ```javascript
-import { Scheduler, GenServer } from "processes";
-self.scheduler = self.scheduler || new Scheduler();
+import { ProcessSystem, GenServer } from "processes";
+self.system = self.system || new ProcessSystem();
 
 const Stack = {
   init: function(args){
@@ -112,16 +112,16 @@ const Stack = {
   }
 }
 
-self.scheduler.spawn(function*(){
-  const [ok, pid] = yield* Scheduler.run(GenServer.start, [Stack, ["hello"]]);
+self.system.spawn(function*(){
+  const [ok, pid] = yield* ProcessSystem.run(GenServer.start, [Stack, ["hello"]]);
 
-  let a = yield* Scheduler.run(GenServer.call, [pid, "pop"]);
+  let a = yield* ProcessSystem.run(GenServer.call, [pid, "pop"]);
   console.log(a); // "hello"
 
-  let b = yield* Scheduler.run(GenServer.cast, [pid, ["push", "world"]]);
+  let b = yield* ProcessSystem.run(GenServer.cast, [pid, ["push", "world"]]);
   console.log(b); // Symbol.for("ok")
 
-  let c = yield* Scheduler.run(GenServer.call, [pid, "pop"]);
+  let c = yield* ProcessSystem.run(GenServer.call, [pid, "pop"]);
   console.log(c); // "world"
 });
 ```

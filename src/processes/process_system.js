@@ -6,7 +6,7 @@ import Process from "./process";
 import States from "./states";
 import TaskQueue from "./task_queue";
 
-class Scheduler {
+class ProcessSystem {
 
   constructor(){
     this.process_counter = -1;
@@ -20,10 +20,10 @@ class Scheduler {
     this.task_queue = new TaskQueue(throttle);
     this.suspended = new Map();
 
-    let scheduler_scope = this;
+    let process_system_scope = this;
     this.main_process = this.spawn(function*(){
         while(true){
-          yield scheduler_scope.sleep(10000);
+          yield process_system_scope.sleep(10000);
         }
     });
   }
@@ -255,4 +255,4 @@ class Scheduler {
   }
 }
 
-export default Scheduler;
+export default ProcessSystem;

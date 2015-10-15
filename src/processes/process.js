@@ -2,7 +2,7 @@
 
 /* @flow */
 import Mailbox from "./mailbox";
-import Scheduler from "./scheduler";
+import ProcessSystem from "./process_system";
 import States from "./states";
 
 const NOMSG = Symbol();
@@ -24,17 +24,17 @@ class Process {
   mailbox: Mailbox;
   func: Function;
   args: Array;
-  scheduler: Scheduler;
+  system: ProcessSystem;
   status: Symbol;
   dict: Object;
   flags: Object;
 
-  constructor(pid: Number, func: Function, args: Array, mailbox: Mailbox, scheduler: Scheduler){
+  constructor(pid: Number, func: Function, args: Array, mailbox: Mailbox, system: ProcessSystem){
     this.pid = pid;
     this.func = func;
     this.args = args;
     this.mailbox = mailbox;
-    this.scheduler = scheduler;
+    this.system = system;
     this.status = States.STOPPED;
     this.dict = {};
     this.flags = {};
@@ -44,8 +44,8 @@ class Process {
     const function_scope = this;
     let machine = this.main();
 
-    this.scheduler.queue(function() {
-      function_scope.scheduler.set_current(function_scope.pid); 
+    this.system.queue(function() {
+      function_scope.system.set_current(function_scope.pid); 
       function_scope.run(machine, machine.next()); 
     }, this.pid);  
   }
@@ -60,7 +60,7 @@ class Process {
       retval = e;
     }
 
-    this.scheduler.exit(retval);
+    this.system.exit(retval);
   }
 
   process_flag(flag, value){
@@ -76,7 +76,7 @@ class Process {
       console.error(reason);
     }
 
-    this.scheduler.remove_proc(this.pid, reason);
+    this.system.remove_proc(this.pid, reason);
   }
 
   receive(fun){
@@ -103,8 +103,8 @@ class Process {
 
       if(is_sleep(value)){
 
-        this.scheduler.delay(function() {
-          function_scope.scheduler.set_current(function_scope.pid); 
+        this.system.delay(function() {
+          function_scope.system.set_current(function_scope.pid); 
           function_scope.run(machine, machine.next()); 
         }, value[1]);
 
@@ -112,8 +112,8 @@ class Process {
 
         let result = value[3]();
 
-        this.scheduler.queue(function() { 
-          function_scope.scheduler.set_current(function_scope.pid); 
+        this.system.queue(function() { 
+          function_scope.system.set_current(function_scope.pid); 
           function_scope.run(machine, machine.next(result)); 
         });
 
@@ -122,20 +122,20 @@ class Process {
         let result = function_scope.receive(value[1]);
 
         if(result === NOMSG){
-          this.scheduler.suspend(function() { 
-            function_scope.scheduler.set_current(function_scope.pid); 
+          this.system.suspend(function() { 
+            function_scope.system.set_current(function_scope.pid); 
             function_scope.run(machine, step); 
           });         
         }else{
-          this.scheduler.queue(function() { 
-            function_scope.scheduler.set_current(function_scope.pid); 
+          this.system.queue(function() { 
+            function_scope.system.set_current(function_scope.pid); 
             function_scope.run(machine, machine.next(result)); 
           });          
         }
 
       }else{
-        this.scheduler.queue(function() { 
-          function_scope.scheduler.set_current(function_scope.pid); 
+        this.system.queue(function() { 
+          function_scope.system.set_current(function_scope.pid); 
           function_scope.run(machine, machine.next(value)); 
         });  
       }

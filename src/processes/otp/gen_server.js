@@ -1,19 +1,19 @@
 function start(module, args){
-  return [Symbol.for("ok"), self.scheduler.spawn(start_process(module, args))];
+  return [Symbol.for("ok"), self.system.spawn(start_process(module, args))];
 }
 
 function start_link(module, args){
-  return [Symbol.for("ok"), self.scheduler.spawn_link(start_process(module, args))];
+  return [Symbol.for("ok"), self.system.spawn_link(start_process(module, args))];
 }
 
 function start_process(module, args){
   return function*(){
     let [ok, state] = module.init.apply(null, [args]);
-    yield self.scheduler.put("state", state);
+    yield self.system.put("state", state);
 
     try{
       while(true){
-        yield self.scheduler.receive(function(args){
+        yield self.system.receive(function(args){
           let command = args[0];
 
           switch(command){
@@ -21,20 +21,20 @@ function start_process(module, args){
               var request = args[1];
               var sender = args[2];
 
-              var [reply, response, new_state] = module.handle_call(request, sender, self.scheduler.get("state"));
-              self.scheduler.put("state", new_state);
+              var [reply, response, new_state] = module.handle_call(request, sender, self.system.get("state"));
+              self.system.put("state", new_state);
 
-              self.scheduler.send(sender, response);
+              self.system.send(sender, response);
               break;
 
             case "cast":
               var request = args[1];
               var sender = args[2];
 
-              var [reply, new_state] = module.handle_cast(request, self.scheduler.get("state"));
+              var [reply, new_state] = module.handle_cast(request, self.system.get("state"));
 
-              self.scheduler.put("state", new_state);
-              self.scheduler.send(args[2], Symbol.for("ok"));
+              self.system.put("state", new_state);
+              self.system.send(args[2], Symbol.for("ok"));
 
               break;
 
@@ -52,23 +52,23 @@ function start_process(module, args){
 }
 
 function* call(server, request){
-  self.scheduler.send(server, ["call", request, self.scheduler.pid()]);
+  self.system.send(server, ["call", request, self.system.pid()]);
 
-  return yield self.scheduler.receive(function(args){
+  return yield self.system.receive(function(args){
     return args;
   });
 }
 
 function* cast(server, request){
-  self.scheduler.send(server, ["cast", request, self.scheduler.pid()]);
+  self.system.send(server, ["cast", request, self.system.pid()]);
 
-  return yield self.scheduler.receive(function(args){
+  return yield self.system.receive(function(args){
     return args;
   });  
 }
 
-function stop(server, request){
-  self.scheduler.send(server, ["stop"]); 
+function stop(server){
+  self.system.send(server, ["stop"]); 
 }
 
 export default { start, start_link, call, cast, stop };

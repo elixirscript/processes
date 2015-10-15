@@ -1,29 +1,29 @@
 "use strict";
 
-import { Scheduler, GenServer } from "../src/processes";
-self.scheduler = self.scheduler || new Scheduler();
+import { ProcessSystem, GenServer } from "../src/processes";
+self.system = self.system || new ProcessSystem();
 
 
-var pid1 = scheduler.spawn(function*(){
+var pid1 = system.spawn(function*(){
     while(true){
 
-      yield scheduler.receive(function(value){
+      yield system.receive(function(value){
         return console.log(value);
       });
 
-      scheduler.send(pid2, "message from 1");
+      system.send(pid2, "message from 1");
     }
 });
 
-scheduler.register("Sally", pid1);
+system.register("Sally", pid1);
 
 
-var pid2 = scheduler.spawn(function*(){
+var pid2 = system.spawn(function*(){
   while(true){
     
-    scheduler.send("Sally", "message from 2");
+    system.send("Sally", "message from 2");
 
-    yield scheduler.receive(function(value){
+    yield system.receive(function(value){
       return console.log(value);
     });
   }

@@ -1,7 +1,7 @@
 "use strict";
 
-import { Scheduler, GenServer } from "../src/processes";
-self.scheduler = self.scheduler || new Scheduler();
+import { ProcessSystem, GenServer } from "../src/processes";
+self.system = self.system || new ProcessSystem();
 
 const Stack = {
   init: function(args){
@@ -18,15 +18,15 @@ const Stack = {
   }
 }
 
-self.scheduler.spawn(function*(){
-  const [ok, pid] = yield* Scheduler.run(GenServer.start, [Stack, ["hello"]]);
+self.system.spawn(function*(){
+  const [ok, pid] = yield* ProcessSystem.run(GenServer.start, [Stack, ["hello"]]);
 
-  let a = yield* Scheduler.run(GenServer.call, [pid, "pop"]);
+  let a = yield* ProcessSystem.run(GenServer.call, [pid, "pop"]);
   console.log(a);
 
-  let b = yield* Scheduler.run(GenServer.cast, [pid, ["push", "world"]]);
+  let b = yield* ProcessSystem.run(GenServer.cast, [pid, ["push", "world"]]);
   console.log(b);
 
-  let c = yield* Scheduler.run(GenServer.call, [pid, "pop"]);
+  let c = yield* ProcessSystem.run(GenServer.call, [pid, "pop"]);
   console.log(c);
 });
