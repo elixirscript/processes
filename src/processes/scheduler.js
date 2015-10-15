@@ -1,45 +1,58 @@
 "use strict";
 
-//Scheduler. Borrowed and modified from RxJS's Default Scheduler.
-//While it is probably more robust, this should fit the needs for
-//this project.
+const MAX_REDUCTIONS_PER_PROCESS = 8;
 
-//TODO: Use a fair scheduling implementation
-class Scheduler {
-  constructor(throttle = 0){
-    this.nextTaskId = 1;
-    this.tasks = {}
-    this.isRunning = false;
-    this.invokeLater = function (callback) { setTimeout(callback, throttle); }
+class ProcessQueue {
+  constructor(pid){
+    this.pid = pid;
+    this.tasks = [];
   }
 
-  removeFromScheduler(taskId){
-    delete this.tasks[taskId];
+  empty(){
+    return this.tasks.length === 0;
+  }
+
+  add(task){
+    this.tasks.push(task);
+  }
+
+  next(){
+    return this.tasks.shift();
+  }
+}
+
+class Scheduler {
+  constructor(throttle = 0){
+    this.isRunning = false;
+    this.invokeLater = function (callback) { setTimeout(callback, throttle); }
+    this.queues = {};
+    this.run();
+  }
+
+  addToQueue(pid, task){
+    if(!this.queues[pid]){
+      this.queues[pid] = new ProcessQueue(pid);
+    }
+
+    this.queues[pid].add(task);
   }
 
   removePid(pid){
-    //prevent further execution while removing tasks
-    //with matching pids
     this.isRunning = true;
 
-    for(let taskId of Object.keys(this.tasks)){
-      if(this.tasks[taskId] && this.tasks[taskId][0] === pid){
-        this.removeFromScheduler(taskId);
-      }
-    }
+    delete this.queues[pid];
 
     this.isRunning = false;
   }
 
-  runTask(taskId){
+  run(){
     if (this.isRunning) {
-      this.invokeLater(() => { this.runTask(taskId); });
+      this.invokeLater(() => { this.run(); });
     } else {
-      if(this.tasks[taskId]){
-
-        let [pid, task] = this.tasks[taskId];
-
-        if (task) {
+      for(let pid of Object.keys(this.queues)){
+        let reductions = 0;
+        while(this.queues[pid] && !this.queues[pid].empty() && reductions < MAX_REDUCTIONS_PER_PROCESS){
+          let task = this.queues[pid].next();
           this.isRunning = true;
 
           let result;
@@ -51,29 +64,30 @@ class Scheduler {
             result = e;
           }
 
-          this.removeFromScheduler(taskId);
           this.isRunning = false;
 
           if (result instanceof Error) {
             throw result;
           }
-        }
 
+          reductions++;         
+        }
       }
+
+      this.invokeLater(() => { this.run(); });
     }
   }
 
   addToScheduler(pid, task, dueTime = 0) {
-    let id = this.nextTaskId ++;
-    this.tasks[id] = [ pid, task ];
-
     if(dueTime === 0){
-      this.invokeLater(() => { this.runTask(id); });
+      this.invokeLater(() => { 
+        this.addToQueue(pid, task);
+      });
     }else{
-      setTimeout(() => { this.runTask(id); }, dueTime);      
+      setTimeout(() => {
+        this.addToQueue(pid, task);
+      }, dueTime);      
     }
-
-    return id;
   };
 
   schedule(pid, task){
