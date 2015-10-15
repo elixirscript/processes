@@ -81,13 +81,13 @@ to each other.
 * GenServer
     * `start(module, args)` - Starts a GenServer with the given module and args
     * `start_link(module, args)` - Starts a GenServer with the given module and args
-    * `call* (server, action) - Sends the GenServer a action and waits for it to respond with a value.
-    * `cast* (server, action) - Sends the GenServer a action to update a value.
-    * `stop (server) - Stops the GenServer.
+    * `call* (server, action)` - Sends the GenServer a action and waits for it to respond with a value.
+    * `cast* (server, action)` - Sends the GenServer a action to update a value.
+    * `stop (server)` - Stops the GenServer.
     * **Note**: Genserver expects a module the has the following functions:
         * `init(args)` - Must return an array containing a symbol and the initial state
         * `handle_call(action, from, state)` - Called when `GenServer.call` is called. This function is given the action, the pid of the calling process, and the current state. Must return `[reply, return_value, new_state]` where reply is a symbol ,usually `Symbol.for("reply"), the value to return to the process, and lastly, the new state of the GenServer.
-        * handle_cast(action, state) - Called when `GenServer.cast` is called. his function is given the action, and the current state. Must return `[reply, return_value, new_state]` where reply is a symbol ,usually `Symbol.for("noreply"), and lastly, the new state of the GenServer.
+        * `handle_cast(action, state)` - Called when `GenServer.cast` is called. his function is given the action, and the current state. Must return `[reply, return_value, new_state]` where reply is a symbol ,usually `Symbol.for("noreply")`, and lastly, the new state of the GenServer.
     
 #### GenServer Example
 
