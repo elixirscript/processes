@@ -5,8 +5,6 @@ import Mailbox from "./mailbox";
 import ProcessSystem from "./process_system";
 import States from "./states";
 
-const NOMSG = Symbol();
-
 function is_sleep(value){
   return Array.isArray(value) && value[0] === States.SLEEP;
 }
@@ -80,13 +78,16 @@ class Process {
   }
 
   receive(fun){
-    let value = NOMSG;
+    let value = States.NOMATCH;
     let messages = this.mailbox.get();
 
     for(let i = 0; i < messages.length; i++){
       try{
         value = fun(messages[i]);
-        this.mailbox.removeAt(i);
+        if(value !== States.NOMATCH){
+          this.mailbox.removeAt(i);
+          break;
+        }
       }catch(e){
         this.exit(e);
       }
@@ -121,7 +122,7 @@ class Process {
 
         let result = function_scope.receive(value[1]);
 
-        if(result === NOMSG){
+        if(result === States.NOMATCH){
           this.system.suspend(function() { 
             function_scope.system.set_current(function_scope.pid); 
             function_scope.run(machine, step); 

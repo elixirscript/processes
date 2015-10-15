@@ -10,5 +10,6 @@ export default {
   SUSPENDED: Symbol.for("suspended"),
   STOPPED: Symbol.for("stopped"),
   SLEEP: Symbol.for("sleep"),
-  EXIT: Symbol.for("exit")
+  EXIT: Symbol.for("exit"),
+  NOMATCH: Symbol.for("no_match")
 }

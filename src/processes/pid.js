@@ -10,7 +10,7 @@ class PID {
   }
 
   toString(){
-    return "PID#<0." + id + ".0>";
+    return "PID#<0." + this.id + ".0>";
   }
 }
 

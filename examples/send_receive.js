@@ -1,30 +1,43 @@
 "use strict";
 
-import { ProcessSystem, GenServer } from "../src/processes";
+import { ProcessSystem, GenServer, Application } from "../src/processes";
 self.system = self.system || new ProcessSystem();
 
+let myApp = {
+  start: function(type, args){
+    let pid = self.system.spawn(function*(){
+      var pid1 = self.system.spawn_link(function*(){
+          while(true){
 
-var pid1 = system.spawn(function*(){
-    while(true){
+            yield self.system.receive(function(value){
+              return console.log(value);
+            });
 
-      yield system.receive(function(value){
-        return console.log(value);
+            self.system.send(pid2, "message from 1");
+          }
       });
 
-      system.send(pid2, "message from 1");
-    }
-});
-
-system.register("Sally", pid1);
+      self.system.register("Sally", pid1);
 
 
-var pid2 = system.spawn(function*(){
-  while(true){
-    
-    system.send("Sally", "message from 2");
+      var pid2 = self.system.spawn_link(function*(){
+        while(true){
+          
+          self.system.send("Sally", "message from 2");
 
-    yield system.receive(function(value){
-      return console.log(value);
+          yield self.system.receive(function(value){
+            return console.log(value);
+          });
+        }
+      });
+
+      yield self.system.receive(function(value){
+        return Symbol.for("no_match");
+      });      
     });
+
+    return [Symbol.for("ok"), pid];
   }
-});
+};
+
+let pid = Application.start(myApp);

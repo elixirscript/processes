@@ -21,11 +21,12 @@ class ProcessSystem {
     this.suspended = new Map();
 
     let process_system_scope = this;
-    this.main_process = this.spawn(function*(){
+    this.main_process_pid = this.spawn(function*(){
         while(true){
           yield process_system_scope.sleep(10000);
         }
     });
+    this.set_current(this.main_process_pid);
   }
 
   static * run(fun, args, context = null){
@@ -65,13 +66,13 @@ class ProcessSystem {
   }
 
   link(pid){
-    this.links.get(this.current_process.pid).add(pid);
-    this.links.get(pid).add(this.current_process.pid);  
+    this.links.get(this.pid()).add(pid);
+    this.links.get(pid).add(this.pid());  
   }
 
   unlink(pid){
-    this.links.get(this.current_process.pid).delete(pid);
-    this.links.get(pid).delete(this.current_process.pid);   
+    this.links.get(this.pid()).delete(pid);
+    this.links.get(pid).delete(this.pid());   
   }
 
   set_current(id){
@@ -104,9 +105,8 @@ class ProcessSystem {
     this.unregister(pid);
     this.scheduler.removePid(pid);
 
-    if(this.links.get(pid)){
-      for (let linkpid in this.links.get(pid).entries()) {
-        linkpid = Number(linkpid);
+    if(this.links.has(pid)){
+      for (let linkpid of this.links.get(pid)) {
         this.exit(linkpid, exitreason);
         this.links.get(linkpid).delete(pid);
       }
