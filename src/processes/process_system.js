@@ -5,11 +5,11 @@ import Mailbox from "./mailbox";
 import Process from "./process";
 import States from "./states";
 import Scheduler from "./scheduler";
+import PID from "./pid";
 
 class ProcessSystem {
 
   constructor(){
-    this.process_counter = -1;
     this.pids = new Map();
     this.mailboxes = new Map();
     this.names = new Map();
@@ -83,8 +83,7 @@ class ProcessSystem {
   }
 
   add_proc(fun, args, linked){
-    this.process_counter = this.process_counter + 1;
-    let newpid = this.process_counter;
+    let newpid = new PID();
     let mailbox = new Mailbox();
     let newproc = new Process(newpid, fun, args, mailbox, this);
 
@@ -141,7 +140,7 @@ class ProcessSystem {
   }
 
   pidof(id){
-    if (typeof(id) === "number") {
+    if (id instanceof PID) {
        return this.pids.has(id) ? id : null;
     } else if (id instanceof Process) {
        return id.pid;

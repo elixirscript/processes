@@ -1,5 +1,6 @@
 "use strict";
 
+// A reduction is equal to a function call
 const MAX_REDUCTIONS_PER_PROCESS = 8;
 
 class ProcessQueue {
@@ -25,22 +26,22 @@ class Scheduler {
   constructor(throttle = 0){
     this.isRunning = false;
     this.invokeLater = function (callback) { setTimeout(callback, throttle); }
-    this.queues = {};
+    this.queues = new Map();
     this.run();
   }
 
   addToQueue(pid, task){
-    if(!this.queues[pid]){
-      this.queues[pid] = new ProcessQueue(pid);
+    if(!this.queues.has(pid)){
+      this.queues.set(pid, new ProcessQueue(pid));
     }
 
-    this.queues[pid].add(task);
+    this.queues.get(pid).add(task);
   }
 
   removePid(pid){
     this.isRunning = true;
 
-    delete this.queues[pid];
+    this.queues.delete(pid);
 
     this.isRunning = false;
   }
@@ -49,10 +50,10 @@ class Scheduler {
     if (this.isRunning) {
       this.invokeLater(() => { this.run(); });
     } else {
-      for(let pid of Object.keys(this.queues)){
+      for(let [pid, queue] of this.queues){
         let reductions = 0;
-        while(this.queues[pid] && !this.queues[pid].empty() && reductions < MAX_REDUCTIONS_PER_PROCESS){
-          let task = this.queues[pid].next();
+        while(queue && !queue.empty() && reductions < MAX_REDUCTIONS_PER_PROCESS){
+          let task = queue.next();
           this.isRunning = true;
 
           let result;
