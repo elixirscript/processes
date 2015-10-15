@@ -4,6 +4,7 @@
 //While it is probably more robust, this should fit the needs for
 //this project.
 
+//TODO: Use a fair scheduling implementation
 class Scheduler {
   constructor(throttle = 0){
     this.nextTaskId = 1;
