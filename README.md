@@ -1,12 +1,4 @@
-Experiment to reproduce erlang style processes in browser. The api follows the one from Erlang. All are found on the `ProcessSystem` class
-    
-
-### Running Examples
-
-* `jspm install`
-* `python -m SimpleHTTPServer 8000`
-
-Going to `localhost:8000` will show links to examples.
+Experiment to reproduce Erlang style processes in browser. The api follows the one from Erlang. All are found on the `ProcessSystem` class
 
 One example is an implementation of a GenServer. The other example is 2 processes talking
 to each other.
@@ -15,38 +7,38 @@ to each other.
 
 * First, import the ProcessSystem create a new instance of one.
   ```javascript
-    import { ProcessSystem } from "processes";
+    const ProcessSystem = require("erlang-processes");
     let system = new ProcessSystem();
   ```
-  
-* Now you can spawn processes using the system. 
+
+* Now you can spawn processes using the system.
 
     A process will switch to other processes when yield is used and will run until it completes.
-    
+
     ```javascript
     var pid1 = system.spawn(function*(){
         while(true){
-    
+
           yield system.receive(function(value){
             return console.log(value);
           });
-    
+
           system.send(pid2, "message from 1");
         }
     });
-    
+
     system.register("Sally", pid1);
-    
+
     var pid2 = system.spawn(function*(){
       while(true){
         system.send("Sally", "message from 2");
-    
+
         yield system.receive(function(value){
           return console.log(value);
         });
       }
     });
-    
+
     ```
 
 ### API
@@ -88,13 +80,13 @@ to each other.
         * `init(args)` - Must return an array containing a symbol and the initial state
         * `handle_call(action, from, state)` - Called when `GenServer.call` is called. This function is given the action, the pid of the calling process, and the current state. Must return `[reply, return_value, new_state]` where reply is a symbol ,usually `Symbol.for("reply"), the value to return to the process, and lastly, the new state of the GenServer.
         * `handle_cast(action, state)` - Called when `GenServer.cast` is called. his function is given the action, and the current state. Must return `[reply, return_value, new_state]` where reply is a symbol ,usually `Symbol.for("noreply")`, and lastly, the new state of the GenServer.
-    
+
 #### GenServer Example
 
 An example of a Stack using a GenServer
 
 ```javascript
-import { ProcessSystem, GenServer } from "processes";
+const ProcessSystem = require("erlang-processes");
 self.system = self.system || new ProcessSystem();
 
 const Stack = {
