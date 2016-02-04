@@ -47,45 +47,38 @@ class Scheduler {
     this.isRunning = false;
   }
 
-    run(){
-        let iter = this.queues.entries();
-        let next = iter.next();
-        this.invokeLater(this.do_run(next, iter, this.reductions_per_process));
-    }
+  run(){
+    if (this.isRunning) {
+      this.invokeLater(() => { this.run(); });
+    } else {
+      for(let [pid, queue] of this.queues){
+        let reductions = 0;
+        while(queue && !queue.empty() && reductions < this.reductions_per_process){
+          let task = queue.next();
+          this.isRunning = true;
 
-    do_run(entry, queueIterator, reductions){
-        if(entry.done == true){
-            let iter = this.queues.entries();
-            let next = iter.next();
-            this.invokeLater(() => this.do_run(next, iter, this.reductions_per_process));
-        }else if(this.isRunning){
-            this.invokeLater(this.do_run(entry, queueIterator, reductions));
-        }else if(reductions == 0 || !entry.value[1] || entry.value[1].empty()){
-            let next = queueIterator.next();
-            this.invokeLater(this.do_run(next, queueIterator, this.reductions_per_process));
-        }else{
-            let queue = entry.value[1];
-            let task = queue.next();
-            this.isRunning = true;
+          let result;
 
-            let result;
+          try{
+            result = task();
+          }catch(e){
+            console.error(e);
+            result = e;
+          }
 
-            try{
-                result = task();
-            }catch(e){
-                console.error(e);
-                result = e;
-            }
+          this.isRunning = false;
 
-            this.isRunning = false;
+          if (result instanceof Error) {
+            throw result;
+          }
 
-            if (result instanceof Error) {
-                throw result;
-            }
-
-            this.invokeLater(this.do_run(entry, queueIterator, reductions - 1));
+          reductions++;
         }
+      }
+
+      this.invokeLater(() => { this.run(); });
     }
+  }
 
   addToScheduler(pid, task, dueTime = 0) {
     if(dueTime === 0){
