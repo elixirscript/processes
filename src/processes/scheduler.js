@@ -1,8 +1,5 @@
 "use strict";
 
-// A reduction is equal to a function call
-const MAX_REDUCTIONS_PER_PROCESS = 8;
-
 class ProcessQueue {
   constructor(pid){
     this.pid = pid;
@@ -23,11 +20,15 @@ class ProcessQueue {
 }
 
 class Scheduler {
-  constructor(throttle = 0){
-    this.isRunning = false;
-    this.invokeLater = function (callback) { setTimeout(callback, throttle); }
-    this.queues = new Map();
-    this.run();
+    constructor(throttle = 0, reductions_per_process = 8){
+        this.isRunning = false;
+        this.invokeLater = function (callback) { setTimeout(callback, throttle); };
+
+        // In our case a reduction is equal to a task call
+        // Controls how many tasks are called at a time per process
+        this.reductions_per_process = reductions_per_process;
+        this.queues = new Map();
+        this.run();
   }
 
   addToQueue(pid, task){
@@ -46,38 +47,45 @@ class Scheduler {
     this.isRunning = false;
   }
 
-  run(){
-    if (this.isRunning) {
-      this.invokeLater(() => { this.run(); });
-    } else {
-      for(let [pid, queue] of this.queues){
-        let reductions = 0;
-        while(queue && !queue.empty() && reductions < MAX_REDUCTIONS_PER_PROCESS){
-          let task = queue.next();
-          this.isRunning = true;
-
-          let result;
-
-          try{
-            result = task();
-          }catch(e){
-            console.error(e);
-            result = e;
-          }
-
-          this.isRunning = false;
-
-          if (result instanceof Error) {
-            throw result;
-          }
-
-          reductions++;         
-        }
-      }
-
-      this.invokeLater(() => { this.run(); });
+    run(){
+        let iter = this.queues.entries();
+        let next = iter.next();
+        this.do_run(next, iter, this.reductions_per_process);
     }
-  }
+
+    do_run(entry, queueIterator, reductions){
+        if(entry.done == true){
+            let iter = this.queues.entries();
+            let next = iter.next();
+            this.do_run(next, iter, this.reductions_per_process);
+        }else if(this.isRunning){
+            this.do_run(entry, queueIterator, reductions);
+        }else if(reductions == 0 || !entry.value[1] || entry.value[1].empty()){
+            let next = queueIterator.next();
+            this.do_run(next, queueIterator, this.reductions_per_process);
+        }else{
+            let queue = entry.value[1];
+            let task = queue.next();
+            this.isRunning = true;
+
+            let result;
+
+            try{
+                result = task();
+            }catch(e){
+                console.error(e);
+                result = e;
+            }
+
+            this.isRunning = false;
+
+            if (result instanceof Error) {
+                throw result;
+            }
+
+            this.do_run(entry, queueIterator, reductions - 1);
+        }
+    }
 
   addToScheduler(pid, task, dueTime = 0) {
     if(dueTime === 0){
@@ -87,7 +95,7 @@ class Scheduler {
     }else{
       setTimeout(() => {
         this.addToQueue(pid, task);
-      }, dueTime);      
+      }, dueTime);
     }
   };
 
