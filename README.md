@@ -7,8 +7,8 @@ to each other.
 
 * First, import the ProcessSystem create a new instance of one.
   ```javascript
-    const ProcessSystem = require("erlang-processes");
-    let system = new ProcessSystem();
+    const Processes = require("erlang-processes");
+    let system = new Processes.default.ProcessSystem();
   ```
 
 * Now you can spawn processes using the system.
@@ -86,8 +86,8 @@ to each other.
 An example of a Stack using a GenServer
 
 ```javascript
-const ProcessSystem = require("erlang-processes");
-self.system = self.system || new ProcessSystem();
+const Processes = require("erlang-processes");
+self.system = self.system || new Processes.default.ProcessSystem();
 
 const Stack = {
   init: function(args){
