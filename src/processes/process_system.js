@@ -6,6 +6,7 @@ import Process from "./process";
 import States from "./states";
 import Scheduler from "./scheduler";
 import PID from "./pid";
+import Reference from "./reference";
 
 class ProcessSystem {
 
@@ -33,7 +34,7 @@ class ProcessSystem {
     if(fun.constructor.name === "GeneratorFunction"){
       return yield* fun.apply(context, args);
     }else{
-      return fun.apply(context, args);
+      return yield fun.apply(context, args);
     }
   }
 
@@ -42,7 +43,7 @@ class ProcessSystem {
       let fun = args[0];
       return this.add_proc(fun, [], false).pid;
 
-    }else if(args.length === 3){
+    }else{
       let mod = args[0];
       let fun = args[1];
       let the_args = args[2];
@@ -56,7 +57,7 @@ class ProcessSystem {
       let fun = args[0];
       return this.add_proc(fun, [], true).pid;
 
-    }else if(args.length === 3){
+    }else{
       let mod = args[0];
       let fun = args[1];
       let the_args = args[2];
@@ -67,12 +68,12 @@ class ProcessSystem {
 
   link(pid){
     this.links.get(this.pid()).add(pid);
-    this.links.get(pid).add(this.pid());  
+    this.links.get(pid).add(this.pid());
   }
 
   unlink(pid){
     this.links.get(this.pid()).delete(pid);
-    this.links.get(pid).delete(this.pid());   
+    this.links.get(pid).delete(this.pid());
   }
 
   set_current(id){
@@ -117,14 +118,18 @@ class ProcessSystem {
 
   register(name, pid){
     if(!this.names.has(name)){
-      this.names.set(name, pid)
+      this.names.set(name, pid);
     }else{
       throw new Error("Name is already registered to another process");
     }
   }
 
-  registered(name){
+  whereis(name){
     return this.names.has(name) ? this.names.get(name) : null;
+  }
+
+  registered(){
+    return this.names.keys();
   }
 
   unregister(pid){
@@ -145,7 +150,7 @@ class ProcessSystem {
     } else if (id instanceof Process) {
        return id.pid;
     } else {
-       let pid = this.registered(id);
+       let pid = this.whereis(id);
        if (pid === null)
           throw("Process name not registered: " + id + " (" + typeof(id) + ")");
        return pid;
@@ -201,7 +206,7 @@ class ProcessSystem {
 
   schedule(fun, pid){
     const the_pid = pid != null ? pid : this.current_process.pid;
-    this.scheduler.schedule(the_pid, fun); 
+    this.scheduler.schedule(the_pid, fun);
   }
 
   exit(one, two){
@@ -213,11 +218,11 @@ class ProcessSystem {
       if((process && process.is_trapping_exits()) || reason === States.KILL || reason === States.NORMAL){
         this.mailboxes.get(process.pid).deliver([States.EXIT, this.pid(), reason ]);
       }else{
-        process.signal(reason); 
-      }          
+        process.signal(reason);
+      }
     }else{
       let reason = one;
-      this.current_process.signal(reason);       
+      this.current_process.signal(reason);
     }
   }
 
@@ -225,23 +230,48 @@ class ProcessSystem {
     this.current_process.signal(reason);
   }
 
-  process_flag(flag, value){
-    this.current_process.process_flag(flag, value);
+  process_flag(...args){
+    if(args.length == 2){
+      const flag = args[0];
+      const value = args[1];
+      return this.current_process.process_flag(flag, value);
+    }else{
+      const pid = this.pidof(args[0]);
+      const flag = args[1];
+      const value = args[2];
+      return this.pids.get(pid).process_flag(flag, value);
+    }
   }
 
   put(key, value){
     this.current_process.dict[key] = value;
   }
 
-  get(key){
-    if(key != null){
+  get_process_dict(){
+    return this.current_process.dict;
+  }
+
+  get(key, default_value = null){
+    if(key in this.current_process.dict){
       return this.current_process.dict[key];
     }else{
-      return this.current_process.dict;
+      return default_value;
     }
   }
 
-  get_keys(){
+  get_keys(value){
+    if(value){
+      keys = [];
+
+      for(key of Object.keys(this.current_process.dict)){
+        if(this.current_process.dict[key] === value){
+          keys.push(key);
+        }
+      }
+
+      return keys;
+    }
+
     return Object.keys(this.current_process.dict);
   }
 
@@ -251,6 +281,19 @@ class ProcessSystem {
     }else{
       this.current_process.dict = {};
     }
+  }
+
+  is_alive(pid){
+    const real_pid = this.pidof(pid);
+    return real_pid != null;
+  }
+
+  list(){
+    return this.pids.keys();
+  }
+
+  make_ref(){
+    return new Reference();
   }
 }
 
