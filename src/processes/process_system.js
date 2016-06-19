@@ -15,6 +15,7 @@ class ProcessSystem {
     this.mailboxes = new Map();
     this.names = new Map();
     this.links = new Map();
+    this.monitors = new Map();
 
     const throttle = 5; //ms between scheduled tasks
     this.current_process = null;
@@ -48,21 +49,21 @@ class ProcessSystem {
       let fun = args[1];
       let the_args = args[2];
 
-      return this.add_proc(mod[fun], the_args, false).pid;
+      return this.add_proc(mod[fun], the_args, false, false).pid;
     }
   }
 
   spawn_link(...args){
     if(args.length === 1){
       let fun = args[0];
-      return this.add_proc(fun, [], true).pid;
+      return this.add_proc(fun, [], true, false).pid;
 
     }else{
       let mod = args[0];
       let fun = args[1];
       let the_args = args[2];
 
-      return this.add_proc(mod[fun], the_args, true).pid;
+      return this.add_proc(mod[fun], the_args, true, false).pid;
     }
   }
 
@@ -76,6 +77,46 @@ class ProcessSystem {
     this.links.get(pid).delete(this.pid());
   }
 
+  spawn_monitor(...args){
+    if(args.length === 1){
+      let fun = args[0];
+      let process = this.add_proc(fun, [], false, true);
+      return [process.pid, process.monitors[0]];
+
+    }else{
+      let mod = args[0];
+      let fun = args[1];
+      let the_args = args[2];
+      let process = this.add_proc(mod[fun], the_args, false, true);
+
+      return [process.pid, process.monitors[0]];
+    }
+  }
+
+  monitor(pid){
+    const real_pid = this.pidof(pid);
+    const ref = this.make_ref();
+
+    if(real_pid){
+
+      this.monitors.set(ref, {'monitor': this.current_process.pid, 'monitee': real_pid});
+      this.pids.get(real_pid).monitors(ref);
+      return ref;
+    }else{
+      this.send(this.current_process.pid, ['DOWN', ref, pid, real_pid, Symbol.for('noproc')]);
+      return ref;
+    }
+  }
+
+  demonitor(ref){
+    if(this.monitor.has(ref)){
+      this.monitor.delete(ref);
+      return true;
+    }
+
+    return false;
+  }
+
   set_current(id){
     let pid = this.pidof(id);
     if(pid !== null){
@@ -84,7 +125,7 @@ class ProcessSystem {
     }
   }
 
-  add_proc(fun, args, linked){
+  add_proc(fun, args, linked, monitored){
     let newpid = new PID();
     let mailbox = new Mailbox();
     let newproc = new Process(newpid, fun, args, mailbox, this);
@@ -95,6 +136,10 @@ class ProcessSystem {
 
     if(linked){
       this.link(newpid);
+    }
+
+    if(monitored){
+      this.monitor(newpid);
     }
 
     newproc.start();
@@ -210,19 +255,31 @@ class ProcessSystem {
   }
 
   exit(one, two){
+    let pid = null;
+    let reason = null;
+    let process = null;
+
     if(two){
       let pid = one;
       let reason = two;
-
       let process = this.pids.get(this.pidof(pid));
+
       if((process && process.is_trapping_exits()) || reason === States.KILL || reason === States.NORMAL){
         this.mailboxes.get(process.pid).deliver([States.EXIT, this.pid(), reason ]);
-      }else{
+      } else{
         process.signal(reason);
       }
+
     }else{
+      let pid = this.current_process.pid;
       let reason = one;
-      this.current_process.signal(reason);
+      let process = this.current_proces;
+      process.signal(reason);
+    }
+
+    for(let ref in process.monitors){
+      let mons = this.monitors.get(ref);
+      this.send(mons['monitor'], ['DOWN', ref, mons['monitee'], mons['monitee'], reason]);
     }
   }
 
@@ -261,9 +318,9 @@ class ProcessSystem {
 
   get_keys(value){
     if(value){
-      keys = [];
+      let keys = [];
 
-      for(key of Object.keys(this.current_process.dict)){
+      for(let key of Object.keys(this.current_process.dict)){
         if(this.current_process.dict[key] === value){
           keys.push(key);
         }

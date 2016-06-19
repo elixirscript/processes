@@ -18,16 +18,7 @@ function receive_timed_out(value){
 }
 
 class Process {
-  pid: Number;
-  mailbox: Mailbox;
-  func: Function;
-  args: Array;
-  system: ProcessSystem;
-  status: Symbol;
-  dict: Object;
-  flags: Object;
-
-  constructor(pid: Number, func: Function, args: Array, mailbox: Mailbox, system: ProcessSystem){
+  constructor(pid, func, args, mailbox, system){
     this.pid = pid;
     this.func = func;
     this.args = args;
@@ -36,6 +27,7 @@ class Process {
     this.status = States.STOPPED;
     this.dict = {};
     this.flags = {};
+    this.monitors = [];
   }
 
   start(){

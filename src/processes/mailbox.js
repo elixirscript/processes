@@ -3,13 +3,11 @@
 /* @flow */
 
 class Mailbox{
-  messages: Array<any>
-
   constructor(){
     this.messages = [];
   }
 
-  deliver(message: any){
+  deliver(message){
     this.messages.push(message);
     return message;
   }

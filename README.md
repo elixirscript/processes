@@ -70,5 +70,7 @@ Experiment to reproduce Erlang style processes in browser. The api follows the o
     * `is_alive(pid)` - Returns if the given pid is alive
     * `make_ref()` - Returns a unique reference
     * `list()` - Returns a list of all the pids
+    * `monitor(pid)` - Monitors the given process
+    * `demonitor(ref)` - Removes the monitor
 
 * `ProcessSystem.run(fun, args, context = null)` - A static generator function used to wrap a normal function or generator. If fun is a function, it returns the value, if it's a generator, then it delegates yielding to the generator.
