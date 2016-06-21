@@ -5,8 +5,8 @@ import Mailbox from "./mailbox";
 import Process from "./process";
 import States from "./states";
 import Scheduler from "./scheduler";
-import PID from "./pid";
-import Reference from "./reference";
+import ErlangTypes from "erlang-types";
+
 
 class ProcessSystem {
 
@@ -103,7 +103,7 @@ class ProcessSystem {
       this.pids.get(real_pid).monitors(ref);
       return ref;
     }else{
-      this.send(this.current_process.pid, ['DOWN', ref, pid, real_pid, Symbol.for('noproc')]);
+      this.send(this.current_process.pid, new ErlangTypes.Tuple('DOWN', ref, pid, real_pid, Symbol.for('noproc')));
       return ref;
     }
   }
@@ -126,7 +126,7 @@ class ProcessSystem {
   }
 
   add_proc(fun, args, linked, monitored){
-    let newpid = new PID();
+    let newpid = new ErlangTypes.PID();
     let mailbox = new Mailbox();
     let newproc = new Process(newpid, fun, args, mailbox, this);
 
@@ -190,7 +190,7 @@ class ProcessSystem {
   }
 
   pidof(id){
-    if (id instanceof PID) {
+    if (id instanceof ErlangTypes.PID) {
        return this.pids.has(id) ? id : null;
     } else if (id instanceof Process) {
        return id.pid;
@@ -265,7 +265,7 @@ class ProcessSystem {
       let process = this.pids.get(this.pidof(pid));
 
       if((process && process.is_trapping_exits()) || reason === States.KILL || reason === States.NORMAL){
-        this.mailboxes.get(process.pid).deliver([States.EXIT, this.pid(), reason ]);
+        this.mailboxes.get(process.pid).deliver(new ErlangTypes.Tuple(States.EXIT, this.pid(), reason ));
       } else{
         process.signal(reason);
       }
@@ -279,7 +279,7 @@ class ProcessSystem {
 
     for(let ref in process.monitors){
       let mons = this.monitors.get(ref);
-      this.send(mons['monitor'], ['DOWN', ref, mons['monitee'], mons['monitee'], reason]);
+      this.send(mons['monitor'], new ErlangTypes.Tuple('DOWN', ref, mons['monitee'], mons['monitee'], reason));
     }
   }
 
@@ -350,7 +350,7 @@ class ProcessSystem {
   }
 
   make_ref(){
-    return new Reference();
+    return new ErlangTypes.Reference();
   }
 }
 
