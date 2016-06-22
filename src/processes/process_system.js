@@ -260,9 +260,9 @@ class ProcessSystem {
     let process = null;
 
     if(two){
-      let pid = one;
-      let reason = two;
-      let process = this.pids.get(this.pidof(pid));
+      pid = one;
+      reason = two;
+      process = this.pids.get(this.pidof(pid));
 
       if((process && process.is_trapping_exits()) || reason === States.KILL || reason === States.NORMAL){
         this.mailboxes.get(process.pid).deliver(new ErlangTypes.Tuple(States.EXIT, this.pid(), reason ));
@@ -271,9 +271,10 @@ class ProcessSystem {
       }
 
     }else{
-      let pid = this.current_process.pid;
-      let reason = one;
-      let process = this.current_process;
+      pid = this.current_process.pid;
+      reason = one;
+      process = this.current_process;
+
       process.signal(reason);
     }
 
