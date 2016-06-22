@@ -273,7 +273,7 @@ class ProcessSystem {
     }else{
       let pid = this.current_process.pid;
       let reason = one;
-      let process = this.current_proces;
+      let process = this.current_process;
       process.signal(reason);
     }
 
