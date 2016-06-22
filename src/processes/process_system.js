@@ -100,7 +100,7 @@ class ProcessSystem {
     if(real_pid){
 
       this.monitors.set(ref, {'monitor': this.current_process.pid, 'monitee': real_pid});
-      this.pids.get(real_pid).monitors(ref);
+      this.pids.get(real_pid).monitors.push(ref);
       return ref;
     }else{
       this.send(this.current_process.pid, new ErlangTypes.Tuple('DOWN', ref, pid, real_pid, Symbol.for('noproc')));
@@ -346,7 +346,7 @@ class ProcessSystem {
   }
 
   list(){
-    return this.pids.keys();
+    return Array.from(this.pids.keys());
   }
 
   make_ref(){
