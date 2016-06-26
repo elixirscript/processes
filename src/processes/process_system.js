@@ -24,9 +24,7 @@ class ProcessSystem {
 
     let process_system_scope = this;
     this.main_process_pid = this.spawn(function*(){
-        while(true){
-          yield process_system_scope.sleep(10000);
-        }
+      yield process_system_scope.sleep(Symbol.for("Infinity"));
     });
     this.set_current(this.main_process_pid);
   }
@@ -246,7 +244,10 @@ class ProcessSystem {
 
   delay(fun, time){
     this.current_process.status = States.SLEEPING;
-    this.scheduler.scheduleFuture(this.current_process.pid, time, fun);
+
+    if(Number.isInteger(time)){
+      this.scheduler.scheduleFuture(this.current_process.pid, time, fun);
+    }
   }
 
   schedule(fun, pid){
