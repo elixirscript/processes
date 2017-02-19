@@ -14,7 +14,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/bryanjos/processes.git"
+    "url": "https://github.com/elixirscript/processes.git"
   },
   "author": "Bryan Joseph <bryanjos@gmail.com>",
   "license": "MIT",
