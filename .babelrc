@@ -1,3 +1,13 @@
 {
-  "plugins": ["transform-es2015-modules-commonjs"]
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "chrome": 59
+        },
+        "loose": true
+      }
+    ]
+  ]
 }
