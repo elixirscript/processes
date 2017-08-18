@@ -74,3 +74,11 @@ Experiment to reproduce Erlang style processes in browser. The api follows the o
     * `demonitor(ref)` - Removes the monitor
 
 * `ProcessSystem.run(fun, args, context = null)` - A static generator function used to wrap a normal function or generator. If fun is a function, it returns the value, if it's a generator, then it delegates yielding to the generator.
+
+## References
+
+* [Er.js](https://github.com/orph/erjs)
+* [Erlang Processes](http://erlang.org/doc/reference_manual/processes.html)
+* [ES6 Generators Deliver Go Style Concurrency](http://swannodette.github.io/2013/08/24/es6-generators-and-csp)
+* [http://joearms.github.io/2013/04/02/Red-and-Green-Callbacks.html](http://joearms.github.io/2013/04/02/Red-and-Green-Callbacks.html)
+
