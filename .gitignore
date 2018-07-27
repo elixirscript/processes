@@ -3,3 +3,4 @@ build/
 .DS_Store
 test_build/
 .tern-port
+lib/
