@@ -5,7 +5,7 @@ import Mailbox from './mailbox'
 import Process from './process'
 import States from './states'
 import Scheduler from './scheduler'
-import ErlangTypes from 'erlang-types'
+import * as ErlangTypes from 'erlang-types'
 
 class ProcessSystem {
   pids: Map<ErlangTypes.PID, Process>
