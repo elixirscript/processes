@@ -2,8 +2,7 @@
   "name": "erlang-processes",
   "version": "2.0.0",
   "description": "Erlang style processes in JavaScript",
-  "main": "lib/processes.js",
-  "jsnext:main": "src/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "test": "ava test"
@@ -24,7 +23,7 @@
     "typescript": "^2.9.2"
   },
   "dependencies": {
-    "erlang-types": "^1.0.1"
+    "erlang-types": "^1.1.0"
   },
   "ava": {
     "compileEnhancements": false,
