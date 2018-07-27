@@ -8,7 +8,10 @@
     "build": "rollup -c rollup.config.js",
     "test": "ava test"
   },
-  "keywords": ["erlang", "process"],
+  "keywords": [
+    "erlang",
+    "process"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/elixirscript/processes.git"
@@ -28,7 +31,9 @@
     "erlang-types": "^1.0.0"
   },
   "ava": {
-    "require": ["babel-register"],
+    "require": [
+      "babel-register"
+    ],
     "babel": {
       "babelrc": true
     }
