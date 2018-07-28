@@ -8,7 +8,7 @@ Experiment to reproduce Erlang style processes in browser. The api follows the o
 
   ```javascript
   const Processes = require('erlang-processes')
-  let system = new Processes.default.ProcessSystem()
+  let system = new Processes.ProcessSystem()
   ```
 
 - Now you can spawn processes using the system.

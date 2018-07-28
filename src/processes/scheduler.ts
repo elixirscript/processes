@@ -1,10 +1,10 @@
-import ErlangTypes from 'erlang-types'
+import {PID} from 'erlang-types'
 
 class ProcessQueue {
-  pid: ErlangTypes.PID
+  pid: PID
   tasks: Function[]
 
-  constructor(pid: ErlangTypes.PID) {
+  constructor(pid: PID) {
     this.pid = pid
     this.tasks = []
   }
@@ -26,7 +26,7 @@ class Scheduler {
   isRunning: boolean
   invokeLater: (callback: () => void) => void
   reductions_per_process: number
-  queues: Map<ErlangTypes.PID, ProcessQueue>
+  queues: Map<PID, ProcessQueue>
   constructor(throttle: number = 0, reductions_per_process: number = 8) {
     this.isRunning = false
     this.invokeLater = function(callback) {
@@ -40,7 +40,7 @@ class Scheduler {
     this.run()
   }
 
-  addToQueue(pid: ErlangTypes.PID, task: () => any) {
+  addToQueue(pid: PID, task: () => any) {
     if (!this.queues.has(pid)) {
       this.queues.set(pid, new ProcessQueue(pid))
     }
@@ -51,7 +51,7 @@ class Scheduler {
     }
   }
 
-  removePid(pid: ErlangTypes.PID) {
+  removePid(pid: PID) {
     this.isRunning = true
 
     this.queues.delete(pid)
@@ -78,7 +78,9 @@ class Scheduler {
           let result
 
           try {
-            result = task()
+            if (task) {
+              result = task()
+            }
           } catch (e) {
             console.error(e)
             result = e
@@ -100,7 +102,7 @@ class Scheduler {
     }
   }
 
-  addToScheduler(pid: ErlangTypes.PID, task: () => any, dueTime: number = 0) {
+  addToScheduler(pid: PID, task: () => any, dueTime: number = 0) {
     if (dueTime === 0) {
       this.invokeLater(() => {
         this.addToQueue(pid, task)
@@ -112,13 +114,13 @@ class Scheduler {
     }
   }
 
-  schedule(pid: ErlangTypes.PID, task: () => any) {
+  schedule(pid: PID, task: () => any) {
     this.addToScheduler(pid, () => {
       task()
     })
   }
 
-  scheduleFuture(pid: ErlangTypes.PID, dueTime: number, task: () => any) {
+  scheduleFuture(pid: PID, dueTime: number, task: () => any) {
     this.addToScheduler(
       pid,
       () => {

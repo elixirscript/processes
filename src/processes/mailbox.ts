@@ -4,20 +4,20 @@ class Mailbox {
     this.messages = []
   }
 
-  deliver(message: any) {
+  deliver(message: any): any {
     this.messages.push(message)
     return message
   }
 
-  get() {
+  get(): any[] {
     return this.messages
   }
 
-  isEmpty() {
+  isEmpty(): boolean {
     return this.messages.length === 0
   }
 
-  removeAt(index: number) {
+  removeAt(index: number): any {
     this.messages.splice(index, 1)
   }
 }

@@ -5,20 +5,17 @@ import Mailbox from './mailbox'
 import Process from './process'
 import States from './states'
 import Scheduler from './scheduler'
-import * as ErlangTypes from 'erlang-types'
+import {PID, Reference, Tuple} from 'erlang-types'
 
 class ProcessSystem {
-  pids: Map<ErlangTypes.PID, Process>
-  mailboxes: Map<ErlangTypes.PID, Mailbox>
-  names: Map<any, ErlangTypes.PID>
-  links: Map<ErlangTypes.PID, Set<ErlangTypes.PID>>
-  monitors: Map<
-    ErlangTypes.Reference,
-    {monitor: ErlangTypes.PID; monitee: ErlangTypes.PID}
-  >
+  pids: Map<PID, Process>
+  mailboxes: Map<PID, Mailbox>
+  names: Map<any, PID>
+  links: Map<PID, Set<PID>>
+  monitors: Map<Reference, {monitor: PID; monitee: PID}>
   current_process: Process | null
   scheduler: Scheduler
-  suspended: Map<ErlangTypes.PID, Function>
+  suspended: Map<PID, Function>
   main_process_pid: Process
 
   constructor() {
@@ -78,12 +75,12 @@ class ProcessSystem {
     }
   }
 
-  link(pid: ErlangTypes.PID) {
+  link(pid: PID) {
     this.links.get(this.pid()).add(pid)
     this.links.get(pid).add(this.pid())
   }
 
-  unlink(pid: ErlangTypes.PID) {
+  unlink(pid: PID) {
     this.links.get(this.pid()).delete(pid)
     this.links.get(pid).delete(this.pid())
   }
@@ -103,7 +100,7 @@ class ProcessSystem {
     }
   }
 
-  monitor(pid: ErlangTypes.PID) {
+  monitor(pid: PID) {
     const real_pid = this.pidof(pid)
     const ref = this.make_ref()
 
@@ -117,13 +114,13 @@ class ProcessSystem {
     } else {
       this.send(
         this.current_process.pid,
-        new ErlangTypes.Tuple('DOWN', ref, pid, real_pid, Symbol.for('noproc'))
+        new Tuple('DOWN', ref, pid, real_pid, Symbol.for('noproc'))
       )
       return ref
     }
   }
 
-  demonitor(ref: ErlangTypes.Reference) {
+  demonitor(ref: Reference) {
     if (this.monitors.has(ref)) {
       this.monitors.delete(ref)
       return true
@@ -149,7 +146,7 @@ class ProcessSystem {
     linked: boolean,
     monitored: boolean
   ) {
-    let newpid = new ErlangTypes.PID()
+    let newpid = new PID()
     let mailbox = new Mailbox()
     let newproc = new Process(newpid, fun, args, mailbox, this)
 
@@ -169,7 +166,7 @@ class ProcessSystem {
     return newproc
   }
 
-  remove_proc(pid: ErlangTypes.PID, exitreason: any) {
+  remove_proc(pid: PID, exitreason: any) {
     this.pids.delete(pid)
     this.unregister(pid)
     this.scheduler.removePid(pid)
@@ -184,7 +181,7 @@ class ProcessSystem {
     }
   }
 
-  register(name: any, pid: ErlangTypes.PID) {
+  register(name: any, pid: PID) {
     if (!this.names.has(name)) {
       this.names.set(name, pid)
     } else {
@@ -200,7 +197,7 @@ class ProcessSystem {
     return this.names.keys()
   }
 
-  unregister(pid: ErlangTypes.PID) {
+  unregister(pid: PID) {
     for (let name of this.names.keys()) {
       if (this.names.has(name) && this.names.get(name) === pid) {
         this.names.delete(name)
@@ -213,7 +210,7 @@ class ProcessSystem {
   }
 
   pidof(id: any) {
-    if (id instanceof ErlangTypes.PID) {
+    if (id instanceof PID) {
       return this.pids.has(id) ? id : null
     } else if (id instanceof Process) {
       return id.pid
@@ -274,14 +271,14 @@ class ProcessSystem {
     }
   }
 
-  schedule(fun: () => any, pid?: ErlangTypes.PID): void {
+  schedule(fun: () => any, pid?: PID): void {
     if (this.current_process) {
       const the_pid = pid != null ? pid : this.current_process.pid
       this.scheduler.schedule(the_pid, fun)
     }
   }
 
-  exit(one: ErlangTypes.PID | any, two?: any): void {
+  exit(one: PID | any, two?: any): void {
     let pid = null
     let reason = null
     let process = null
@@ -298,7 +295,7 @@ class ProcessSystem {
       ) {
         this.mailboxes
           .get(process.pid)
-          .deliver(new ErlangTypes.Tuple(States.EXIT, this.pid(), reason))
+          .deliver(new Tuple(States.EXIT, this.pid(), reason))
       } else {
         process.signal(reason)
       }
@@ -318,13 +315,7 @@ class ProcessSystem {
         if (mons) {
           this.send(
             mons['monitor'],
-            new ErlangTypes.Tuple(
-              'DOWN',
-              ref,
-              mons['monitee'],
-              mons['monitee'],
-              reason
-            )
+            new Tuple('DOWN', ref, mons['monitee'], mons['monitee'], reason)
           )
         }
       }
@@ -395,12 +386,12 @@ class ProcessSystem {
     return real_pid != null
   }
 
-  list(): ErlangTypes.PID[] {
+  list(): PID[] {
     return Array.from(this.pids.keys())
   }
 
-  make_ref(): ErlangTypes.Reference {
-    return new ErlangTypes.Reference()
+  make_ref(): Reference {
+    return new Reference()
   }
 }
 

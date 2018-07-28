@@ -1,4 +1,4 @@
-import ErlangTypes from 'erlang-types'
+import {PID} from 'erlang-types'
 import States from './states'
 import Mailbox from './mailbox'
 import System from './process_system'
@@ -16,7 +16,7 @@ function receive_timed_out(value: any) {
 }
 
 class Process {
-  pid: ErlangTypes.PID
+  pid: PID
   func: Function
   args: any[]
   mailbox: Mailbox
@@ -27,7 +27,7 @@ class Process {
   monitors: any[]
 
   constructor(
-    pid: ErlangTypes.PID,
+    pid: PID,
     func: Function,
     args: any[],
     mailbox: Mailbox,
