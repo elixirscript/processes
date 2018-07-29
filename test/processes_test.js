@@ -1,5 +1,5 @@
 import test from 'ava'
-import ProcessSystem from '../src/index'
+import {ProcessSystem} from '../src/index'
 
 let system = null
 
