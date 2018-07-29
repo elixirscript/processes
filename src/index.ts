@@ -1,3 +1,3 @@
 import ProcessSystem from './processes/process_system'
 
-export {ProcessSystem}
+export default ProcessSystem

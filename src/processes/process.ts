@@ -21,9 +21,9 @@ class Process {
   args: any[]
   mailbox: Mailbox
   system: System
-  status: Symbol
-  dict: Object
-  flags: Object
+  status: symbol
+  dict: Map<any, any>
+  flags: Map<symbol, any>
   monitors: any[]
 
   constructor(
@@ -39,8 +39,8 @@ class Process {
     this.mailbox = mailbox
     this.system = system
     this.status = States.STOPPED
-    this.dict = {}
-    this.flags = {}
+    this.dict = new Map()
+    this.flags = new Map()
     this.monitors = []
   }
 
@@ -67,16 +67,16 @@ class Process {
     this.system.exit(retval)
   }
 
-  process_flag(flag, value) {
-    const old_value = this.flags[flag]
-    this.flags[flag] = value
+  process_flag(flag: symbol, value: any): any {
+    const old_value = this.flags.get(flag)
+    this.flags.set(flag, value)
     return old_value
   }
 
   is_trapping_exits(): boolean {
     return (
-      this.flags[Symbol.for('trap_exit')] &&
-      this.flags[Symbol.for('trap_exit')] == true
+      this.flags.has(Symbol.for('trap_exit')) &&
+      this.flags.get(Symbol.for('trap_exit')) == true
     )
   }
 

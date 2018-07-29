@@ -15,8 +15,8 @@ class ProcessSystem {
   monitors: Map<Reference, {monitor: PID; monitee: PID}>
   current_process: Process | null
   scheduler: Scheduler
-  suspended: Map<PID, Function>
-  main_process_pid: Process
+  suspended: Map<PID, () => any>
+  main_process_pid: PID
 
   constructor() {
     this.pids = new Map()
@@ -52,7 +52,7 @@ class ProcessSystem {
   spawn(...args: any[]) {
     if (args.length === 1) {
       let fun = args[0]
-      return this.add_proc(fun, [], false).pid
+      return this.add_proc(fun, [], false, false).pid
     } else {
       let mod = args[0]
       let fun = args[1]
@@ -75,14 +75,30 @@ class ProcessSystem {
     }
   }
 
-  link(pid: PID) {
-    this.links.get(this.pid()).add(pid)
-    this.links.get(pid).add(this.pid())
+  link(pid: PID): void {
+    const currentProcessPid = this.pid()
+    if (currentProcessPid != null) {
+      const currentProcessLink = this.links.get(currentProcessPid)
+      const IncomingProcessLink = this.links.get(pid)
+
+      if (currentProcessLink && IncomingProcessLink) {
+        currentProcessLink.add(pid)
+        IncomingProcessLink.add(currentProcessPid)
+      }
+    }
   }
 
-  unlink(pid: PID) {
-    this.links.get(this.pid()).delete(pid)
-    this.links.get(pid).delete(this.pid())
+  unlink(pid: PID): void {
+    const currentProcessPid = this.pid()
+    if (currentProcessPid != null) {
+      const currentProcessLink = this.links.get(currentProcessPid)
+      const IncomingProcessLink = this.links.get(pid)
+
+      if (currentProcessLink && IncomingProcessLink) {
+        currentProcessLink.delete(pid)
+        IncomingProcessLink.delete(currentProcessPid)
+      }
+    }
   }
 
   spawn_monitor(...args: any[]) {
@@ -104,19 +120,26 @@ class ProcessSystem {
     const real_pid = this.pidof(pid)
     const ref = this.make_ref()
 
-    if (real_pid) {
-      this.monitors.set(ref, {
-        monitor: this.current_process.pid,
-        monitee: real_pid,
-      })
-      this.pids.get(real_pid).monitors.push(ref)
-      return ref
-    } else {
-      this.send(
-        this.current_process.pid,
-        new Tuple('DOWN', ref, pid, real_pid, Symbol.for('noproc'))
-      )
-      return ref
+    if (this.currentProcess != null) {
+      if (real_pid) {
+        this.monitors.set(ref, {
+          monitor: this.currentProcess.pid,
+          monitee: real_pid,
+        })
+
+        const process = this.pids.get(real_pid)
+        if (process) {
+          process.monitors.push(ref)
+        }
+
+        return ref
+      } else {
+        this.send(
+          this.currentProcess.pid,
+          new Tuple('DOWN', ref, pid, real_pid, Symbol.for('noproc'))
+        )
+        return ref
+      }
     }
   }
 
@@ -131,11 +154,13 @@ class ProcessSystem {
 
   set_current(id: any) {
     let pid = this.pidof(id)
-    if (pid !== null) {
+    if (pid) {
       const next = this.pids.get(pid)
       if (next) {
         this.current_process = next
-        this.current_process.status = States.RUNNING
+        if (this.currentProcess) {
+          this.currentProcess.status = States.RUNNING
+        }
       }
     }
   }
@@ -171,10 +196,14 @@ class ProcessSystem {
     this.unregister(pid)
     this.scheduler.removePid(pid)
 
-    if (this.links.has(pid)) {
-      for (let linkpid of this.links.get(pid)) {
+    const linkedPids = this.links.get(pid)
+    if (linkedPids) {
+      for (let linkpid of linkedPids) {
         this.exit(linkpid, exitreason)
-        this.links.get(linkpid).delete(pid)
+        const linkedPid = this.links.get(linkpid)
+        if (linkedPid) {
+          linkedPid.delete(pid)
+        }
       }
 
       this.links.delete(pid)
@@ -205,8 +234,12 @@ class ProcessSystem {
     }
   }
 
-  pid() {
-    return this.current_process.pid
+  pid(): PID | null {
+    if (this.currentProcess) {
+      return this.currentProcess.pid
+    }
+
+    return null
   }
 
   pidof(id: any) {
@@ -226,12 +259,17 @@ class ProcessSystem {
     const pid = this.pidof(id)
 
     if (pid) {
-      this.mailboxes.get(pid).deliver(msg)
+      const mailbox = this.mailboxes.get(pid)
+      if (mailbox) {
+        mailbox.deliver(msg)
+      }
 
       if (this.suspended.has(pid)) {
         let fun = this.suspended.get(pid)
         this.suspended.delete(pid)
-        this.schedule(fun)
+        if (fun) {
+          this.schedule(fun)
+        }
       }
     }
 
@@ -250,30 +288,30 @@ class ProcessSystem {
     return [States.RECEIVE, fun, DateTimeout, timeoutFn]
   }
 
-  sleep(duration: number | Symbol): [Symbol, number | Symbol] {
+  sleep(duration: number | symbol): [symbol, number | symbol] {
     return [States.SLEEP, duration]
   }
 
-  suspend(fun: Function): void {
-    if (this.current_process) {
-      this.current_process.status = States.SUSPENDED
-      this.suspended.set(this.current_process.pid, fun)
+  suspend(fun: () => any): void {
+    if (this.currentProcess) {
+      this.currentProcess.status = States.SUSPENDED
+      this.suspended.set(this.currentProcess.pid, fun)
     }
   }
 
-  delay(fun: Function, time: number): void {
-    if (this.current_process) {
-      this.current_process.status = States.SLEEPING
+  delay(fun: () => any, time: number): void {
+    if (this.currentProcess) {
+      this.currentProcess.status = States.SLEEPING
 
       if (Number.isInteger(time)) {
-        this.scheduler.scheduleFuture(this.current_process.pid, time, fun)
+        this.scheduler.scheduleFuture(this.currentProcess.pid, time, fun)
       }
     }
   }
 
   schedule(fun: () => any, pid?: PID): void {
-    if (this.current_process) {
-      const the_pid = pid != null ? pid : this.current_process.pid
+    if (this.currentProcess) {
+      const the_pid = pid != null ? pid : this.currentProcess.pid
       this.scheduler.schedule(the_pid, fun)
     }
   }
@@ -286,31 +324,38 @@ class ProcessSystem {
     if (two) {
       pid = one
       reason = two
-      process = this.pids.get(this.pidof(pid))
+      const thePid = this.pidof(pid)
+      if (thePid) {
+        process = this.pids.get(thePid)
+      }
 
-      if (
-        (process && process.is_trapping_exits()) ||
-        reason === States.KILL ||
-        reason === States.NORMAL
-      ) {
-        this.mailboxes
-          .get(process.pid)
-          .deliver(new Tuple(States.EXIT, this.pid(), reason))
-      } else {
-        process.signal(reason)
+      if (process) {
+        if (
+          process.is_trapping_exits() ||
+          reason === States.KILL ||
+          reason === States.NORMAL
+        ) {
+          const mailbox = this.mailboxes.get(process.pid)
+
+          if (mailbox) {
+            mailbox.deliver(new Tuple(States.EXIT, this.pid(), reason))
+          }
+        } else {
+          process.signal(reason)
+        }
       }
     } else {
-      if (this.current_process) {
-        pid = this.current_process.pid
+      if (this.currentProcess) {
+        pid = this.currentProcess.pid
         reason = one
-        process = this.current_process
+        process = this.currentProcess
 
         process.signal(reason)
       }
     }
 
     if (process) {
-      for (let ref in process.monitors) {
+      for (let ref of process.monitors) {
         let mons = this.monitors.get(ref)
         if (mons) {
           this.send(
@@ -323,61 +368,83 @@ class ProcessSystem {
   }
 
   error(reason: any): void {
-    if (this.current_process) {
-      this.current_process.signal(reason)
+    if (this.currentProcess) {
+      this.currentProcess.signal(reason)
     }
   }
 
-  process_flag(...args: any[]) {
+  process_flag(...args: any[]): any {
     if (args.length == 2) {
       const flag = args[0]
       const value = args[1]
-      return this.current_process.process_flag(flag, value)
+      if (this.currentProcess) {
+        return this.currentProcess.process_flag(flag, value)
+      }
     } else {
       const pid = this.pidof(args[0])
-      const flag = args[1]
-      const value = args[2]
-      return this.pids.get(pid).process_flag(flag, value)
+      if (pid) {
+        const flag = args[1]
+        const value = args[2]
+        const process = this.pids.get(pid)
+
+        if (process) {
+          return process.process_flag(flag, value)
+        }
+      }
     }
   }
 
   put(key: string, value: any): void {
-    this.current_process.dict[key] = value
+    if (this.currentProcess) {
+      this.currentProcess.dict.set(key, value)
+    }
   }
 
-  get_process_dict(): Object {
-    return this.current_process.dict
+  get_process_dict(): object {
+    if (this.currentProcess) {
+      return this.currentProcess.dict
+    }
+
+    throw new Error('No Current Process')
   }
 
-  get(key: string, default_value = null) {
-    if (key in this.current_process.dict) {
-      return this.current_process.dict[key]
+  get(key: string, default_value: any = null) {
+    if (this.currentProcess && key in this.currentProcess.dict) {
+      return this.currentProcess.dict.get(key)
     } else {
       return default_value
     }
   }
 
-  get_keys(value: any) {
+  get_keys(value: any): string[] {
     if (value) {
       let keys = []
 
-      for (let key of Object.keys(this.current_process.dict)) {
-        if (this.current_process.dict[key] === value) {
-          keys.push(key)
+      if (this.currentProcess) {
+        for (let key of Object.keys(this.currentProcess.dict)) {
+          if (this.currentProcess.dict.get(key) === value) {
+            keys.push(key)
+          }
         }
       }
 
       return keys
     }
 
-    return Object.keys(this.current_process.dict)
+    if (this.currentProcess) {
+      return Object.keys(this.currentProcess.dict)
+    }
+
+    throw new Error('No Current Process')
   }
 
   erase(key: string): void {
-    if (key != null) {
-      delete this.current_process.dict[key]
-    } else {
-      this.current_process.dict = {}
+    if (this.currentProcess) {
+      if (key != null && this.currentProcess.dict.has(key)) {
+        this.currentProcess.dict.delete(key)
+      } else {
+        this.currentProcess.dict = new Map()
+      }
     }
   }
 
@@ -392,6 +459,14 @@ class ProcessSystem {
 
   make_ref(): Reference {
     return new Reference()
+  }
+
+  get currentProcess(): Process | null {
+    if (this.current_process) {
+      return this.current_process
+    }
+
+    return null
   }
 }
 
