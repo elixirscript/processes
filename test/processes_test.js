@@ -7,7 +7,7 @@ test.beforeEach(t => {
   system = new Processes.ProcessSystem();
 });
 
-test(function* testSpawn(t) {
+test('spawn', function* testSpawn(t) {
   const pid = system.spawn(function*() {
     yield 1;
   });
@@ -16,7 +16,7 @@ test(function* testSpawn(t) {
   t.is(system.list()[1], pid);
 });
 
-test(function* testSpawnLink(t) {
+test('spawn_link',function* testSpawnLink(t) {
   const pid = system.spawn_link(function*() {
     yield 1;
   });

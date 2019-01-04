@@ -1,13 +1,15 @@
-import babel from 'rollup-plugin-babel';
+import babel from 'rollup-plugin-babel'
 
 export default {
-  entry: 'src/index.js',
-  dest: 'lib/processes.js',
-  sourceMap: 'inline',
-  format: 'cjs',
+  input: 'src/index.js',
+  output: {
+    file: 'lib/processes.js',
+    format: 'cjs',
+    sourceMap: 'inline',
+  },
   plugins: [
     babel({
-      babelrc: false
-    })
-  ]
-};
+      babelrc: false,
+    }),
+  ],
+}
