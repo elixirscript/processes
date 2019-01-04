@@ -1,9 +1,10 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const path = require('path')
 
 module.exports = {
   devtool: 'source-map',
   entry: {
-    all: ['@babel/polyfill', __dirname + '/docs_src/js/index'],
+    all: ['@babel/polyfill', __dirname + '/src/docs/js/index.js'],
   },
   output: {
     path: __dirname + '/docs',
@@ -28,7 +29,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: __dirname + '/docs_src/html/index.html',
+      template: __dirname + '/src/docs/html/index.html',
     }),
   ],
   devServer: {

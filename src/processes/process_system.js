@@ -4,20 +4,19 @@
 import Mailbox from './mailbox'
 import Process from './process'
 import States from './states'
-import Scheduler from './scheduler'
+import DefaultScheduler from './schedulers/default_scheduler'
 import {PID, Tuple, Reference} from 'erlang-types'
 
 class ProcessSystem {
-  constructor() {
+  constructor(scheduler = new DefaultScheduler(5)) {
     this.pids = new Map()
     this.mailboxes = new Map()
     this.names = new Map()
     this.links = new Map()
     this.monitors = new Map()
 
-    const throttle = 5 //ms between scheduled tasks
     this.current_process = null
-    this.scheduler = new Scheduler(throttle)
+    this.scheduler = scheduler
     this.suspended = new Map()
 
     let process_system_scope = this

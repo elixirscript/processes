@@ -1,25 +1,6 @@
-'use strict'
+import ProcessQueue from './process_queue'
 
-class ProcessQueue {
-  constructor(pid) {
-    this.pid = pid
-    this.tasks = []
-  }
-
-  empty() {
-    return this.tasks.length === 0
-  }
-
-  add(task) {
-    this.tasks.push(task)
-  }
-
-  next() {
-    return this.tasks.shift()
-  }
-}
-
-class Scheduler {
+class DefaultScheduler {
   constructor(throttle = 0, reductions_per_process = 8) {
     this.isRunning = false
     this.invokeLater = function(callback) {
@@ -119,4 +100,4 @@ class Scheduler {
   }
 }
 
-export default Scheduler
+export default DefaultScheduler

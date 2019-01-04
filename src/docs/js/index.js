@@ -1,6 +1,6 @@
 import '../css/index.css'
 
-import Processes from '../../src/index'
+import Processes from '../../index.js'
 
 const system = new Processes.ProcessSystem()
 
