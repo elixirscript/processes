@@ -1,0 +1,33 @@
+table {
+  margin-left: 45px;
+  font-family: courier;
+  font-size: 8px;
+  line-height: 1em !important;
+  margin-bottom: 50px;
+}
+.group0 {
+  color: #000;
+}
+.group1 {
+  color: #f00;
+}
+.group2 {
+  color: #0f0;
+}
+.group3 {
+  color: #00f;
+}
+.group4 {
+  color: #ff0;
+}
+.group5 {
+  color: #0ff;
+}
+
+#main {
+  margin: auto;
+  width: 60%;
+  padding: 10px;
+}
+
+/*# sourceMappingURL=all.css.map*/
