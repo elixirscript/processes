@@ -26,19 +26,13 @@ class Process {
   flags: Map<symbol, any>
   monitors: any[]
 
-  constructor(
-    pid: PID,
-    func: Function,
-    args: any[],
-    mailbox: Mailbox,
-    system: System
-  ) {
-    this.pid = pid
+  constructor(system: System, func: Function, args: any[]) {
+    this.system = system
     this.func = func
     this.args = args
-    this.mailbox = mailbox
-    this.system = system
     this.status = States.STOPPED
+    this.pid = new PID()
+    this.mailbox = new Mailbox()
     this.dict = new Map()
     this.flags = new Map()
     this.monitors = []

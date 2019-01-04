@@ -171,20 +171,18 @@ class ProcessSystem {
     linked: boolean,
     monitored: boolean
   ) {
-    let newpid = new PID()
-    let mailbox = new Mailbox()
-    let newproc = new Process(newpid, fun, args, mailbox, this)
+    let newproc = new Process(this, fun, args)
 
-    this.pids.set(newpid, newproc)
-    this.mailboxes.set(newpid, mailbox)
-    this.links.set(newpid, new Set())
+    this.pids.set(newproc.pid, newproc)
+    this.mailboxes.set(newproc.pid, newproc.mailbox)
+    this.links.set(newproc.pid, new Set())
 
     if (linked) {
-      this.link(newpid)
+      this.link(newproc.pid)
     }
 
     if (monitored) {
-      this.monitor(newpid)
+      this.monitor(newproc.pid)
     }
 
     newproc.start()
