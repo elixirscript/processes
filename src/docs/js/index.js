@@ -2,7 +2,9 @@ import '../css/index.css'
 
 import Processes from '../../index.js'
 
-const system = new Processes.ProcessSystem()
+const system = new Processes.ProcessSystem(
+  new Processes.RequestAnimationScheduler()
+)
 
 const rows = 200
 const columns = 50

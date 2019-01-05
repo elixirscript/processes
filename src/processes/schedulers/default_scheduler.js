@@ -30,11 +30,15 @@ class DefaultScheduler {
     this.isRunning = false
   }
 
+  _run(run) {
+    this.invokeLater(() => {
+      run()
+    })
+  }
+
   run() {
     if (this.isRunning) {
-      this.invokeLater(() => {
-        this.run()
-      })
+      this._run(this.run.bind(this))
     } else {
       for (let [pid, queue] of this.queues) {
         let reductions = 0
@@ -65,9 +69,7 @@ class DefaultScheduler {
         }
       }
 
-      this.invokeLater(() => {
-        this.run()
-      })
+      this._run(this.run.bind(this))
     }
   }
 
