@@ -37,28 +37,6 @@ function tableCreate(numberOfRows, numberOfColumns) {
   main.appendChild(tbl)
 }
 
-// from https://www.growingwiththeweb.com/2017/12/fast-simple-js-fps-counter.html
-const times = []
-let fps
-let fpsEl
-
-function refreshLoop() {
-  window.requestAnimationFrame(() => {
-    const now = performance.now()
-    while (times.length > 0 && times[0] <= now - 1000) {
-      times.shift()
-    }
-    times.push(now)
-    fps = times.length
-    if (!fpsEl) {
-      fpsEl = document.getElementById('fps')
-    }
-
-    fpsEl.textContent = fps.toString()
-    refreshLoop()
-  })
-}
-
 document.addEventListener('DOMContentLoaded', function(event) {
   const system = new Processes.ProcessSystem(
     new Processes.RequestAnimationScheduler()
@@ -68,8 +46,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
   const columns = 50
 
   const maxProcesses = rows * columns
-
-  refreshLoop()
 
   tableCreate(rows, columns)
 
