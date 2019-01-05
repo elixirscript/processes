@@ -4,18 +4,19 @@
     <div id="main">
       <p>
         This is an demo for the
-        <a href="https://github.com/bryanjos/processes"
+        <a href="https://github.com/elixirscript/processes"
           >erlang processes javascript library</a
         >
         which will hopefully be part of elixirscript. Below is a table with
-        10,000 cells. For each cell there is a process responsible for updating
-        its contents. Each process updates its cell's color and updates it to a
-        random number. This demo is inspired by the
-        <a href="http://swannodette.github.io/2013/08/02/100000-processes/"
+        10,000 cells. There are 10,000 independent processes. Each process
+        updates a random table cell's color and updates it to a random number.
+        This demo is inspired by the
+        <a href="https://swannodette.github.io/2013/08/02/100000-processes"
           >10,000 Processes</a
         >
         demo on David Nolen's blog.
       </p>
+      <p><span id="fps"></span> FPS</p>
     </div>
   <script type="text/javascript" src="all.js"></script></body>
 </html>
