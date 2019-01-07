@@ -4,10 +4,10 @@ const path = require('path')
 module.exports = {
   devtool: 'source-map',
   entry: {
-    all: ['@babel/polyfill', __dirname + '/src/docs/js/index.ts'],
+    all: ['@babel/polyfill', __dirname + '/src/demo/js/index.ts'],
   },
   output: {
-    path: __dirname + '/docs',
+    path: __dirname + '/docs/demo',
     filename: '[name].js',
     publicPath: '',
   },
@@ -34,7 +34,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: __dirname + '/src/docs/html/index.html',
+      template: __dirname + '/src/demo/html/index.html',
     }),
   ],
   devServer: {

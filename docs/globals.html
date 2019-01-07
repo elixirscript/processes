@@ -63,95 +63,31 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<p><a href="https://travis-ci.org/elixirscript/processes"><img src="https://travis-ci.org/elixirscript/processes.svg?branch=master" alt="Build Status"></a></p>
-				<p>Experiment to reproduce Erlang style processes in browser. The api follows the one from Erlang. All are found on the <code>ProcessSystem</code> class</p>
-				<h4 id="usage">Usage</h4>
-				<ul>
-					<li><p>First, import the ProcessSystem create a new instance of one.</p>
-						<pre><code class="language-javascript"><span class="hljs-keyword">const</span> Processes = <span class="hljs-built_in">require</span>(<span class="hljs-string">'erlang-processes'</span>)
-<span class="hljs-keyword">let</span> system = <span class="hljs-keyword">new</span> Processes.default.ProcessSystem()</code></pre>
-					</li>
-					<li><p>Now you can spawn processes using the system.</p>
-						<p>A process will switch to other processes when yield is used and will run until it completes.</p>
-						<pre><code class="language-javascript"><span class="hljs-keyword">var</span> pid1 = system.spawn(<span class="hljs-function"><span class="hljs-keyword">function</span>*(<span class="hljs-params"></span>) </span>{
-  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
-    <span class="hljs-keyword">yield</span> system.receive(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value</span>) </span>{
-      <span class="hljs-keyword">return</span> <span class="hljs-built_in">console</span>.log(value)
-    })
-
-    system.send(pid2, <span class="hljs-string">'message from 1'</span>)
-  }
-})
-
-system.register(<span class="hljs-string">'Sally'</span>, pid1)
-
-<span class="hljs-keyword">var</span> pid2 = system.spawn(<span class="hljs-function"><span class="hljs-keyword">function</span>*(<span class="hljs-params"></span>) </span>{
-  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
-    system.send(<span class="hljs-string">'Sally'</span>, <span class="hljs-string">'message from 2'</span>)
-
-    <span class="hljs-keyword">yield</span> system.receive(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">value</span>) </span>{
-      <span class="hljs-keyword">return</span> <span class="hljs-built_in">console</span>.log(value)
-    })
-  }
-})</code></pre>
-					</li>
-				</ul>
-				<h3 id="api">API</h3>
-				<ul>
-					<li><p>ProcessSystem</p>
-						<ul>
-							<li><code>spawn(fun*) : pid</code> - Starts a process represented by the given generator function</li>
-							<li><code>spawn(module, fun, args) : pid</code> - Starts a process using the generator function from the specified module</li>
-							<li><code>link(pid) : void</code> - links the current process with the process from the given pid</li>
-							<li><code>unlink(pid) : void</code> - unlinks the current process from the process from the given pid</li>
-							<li><code>register(name, pid) : void</code> - registers the given name to the pid</li>
-							<li><code>whereis(name) : pid</code> - returns the pid registered by the given name or null if not registered</li>
-							<li><code>unregister(pid) : void</code> - unregisters the names associated with the pid</li>
-							<li><code>registered() : Array</code> - returns the liast of names that are registered</li>
-							<li><code>pid()</code> : pid` - returns the current process&#39;s pid</li>
-							<li><code>pidof(obj) : pid</code> - takes the input and tries to find the pid. Input can be a <code>pid</code>, <code>Process</code>, or name the pid is associated with</li>
-							<li><code>send(pid, msg) : msg</code> - sends a message the the process represented by the pid</li>
-							<li><code>receive(fun, timeout = 0, timeoutFn = () =&gt; true)</code> - Tells the current process to receive a message that the function can handle. If no match then the process is put in the suspended state until a message arrives or the timeout is reached. If the timeout is reached and no msg matches, then the timeoutFn is called</li>
-							<li><code>sleep(duration)</code> - puts the current process to sleep</li>
-							<li><code>exit(reason)</code> - terminates the current process with the given reason.</li>
-							<li><code>exit(pid, reason)</code> - tells the process with the pid to exit with the given reason</li>
-							<li><code>error(reason)</code> - terminates the current process with an error</li>
-							<li><code>process_flag(pid, flag, value)</code> - Sets flags on the given process.</li>
-							<li><code>process_flag(flag, value)</code> - Sets flags on the current process.<ul>
-									<li>Note: the only flag respected is the <code>Symbol.for(&quot;trap_exit&quot;)</code> flag. If value is <code>true</code>, then exit signals from linked processes are turned into messages and sent to the current processes mailbox. If value is <code>false</code>, the exit is treated as normal and terminates the process. Setting it to <code>true</code> is useful for supervising processes.</li>
-								</ul>
-							</li>
-							<li><code>put(key, value)</code> - Adds a value to the current process&#39;s dictionary</li>
-							<li><code>get(key, default_value = null)</code> - Gets a value from the current process&#39;s dictionary or the default if key not in dictionary</li>
-							<li><code>get_process_dict()</code> - Gets the current process&#39;s dictionary</li>
-							<li><code>get_keys()</code> - Gets all the keys from the current process&#39;s dictionary</li>
-							<li><code>get_keys(value)</code> - Gets all the keys from the current process&#39;s dictionary with the given value</li>
-							<li><code>erase(key)</code> - Removes the key and the associated value from the current process&#39;s dictionary</li>
-							<li><code>erase()</code> - Removes all entries from the current process&#39;s dictionary</li>
-							<li><code>is_alive(pid)</code> - Returns if the given pid is alive</li>
-							<li><code>make_ref()</code> - Returns a unique reference</li>
-							<li><code>list()</code> - Returns a list of all the pids</li>
-							<li><code>monitor(pid)</code> - Monitors the given process</li>
-							<li><code>demonitor(ref)</code> - Removes the monitor</li>
-						</ul>
-					</li>
-					<li><p><code>ProcessSystem.run(fun, args, context = null)</code> - A static generator function used to wrap a normal function or generator. If fun is a function, it returns the value, if it&#39;s a generator, then it delegates yielding to the generator.</p>
-					</li>
-				</ul>
-				<h2 id="references">References</h2>
-				<ul>
-					<li><a href="https://github.com/orph/erjs">Er.js</a></li>
-					<li><a href="http://erlang.org/doc/reference_manual/processes.html">Erlang Processes</a></li>
-					<li><a href="http://swannodette.github.io/2013/08/24/es6-generators-and-csp">ES6 Generators Deliver Go Style Concurrency</a></li>
-					<li><a href="http://joearms.github.io/2013/04/02/Red-and-Green-Callbacks.html">Red and Green Callbacks</a></li>
-				</ul>
-			</div>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>External modules</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-external-module"><a href="modules/_index_.html" class="tsd-kind-icon">"index"</a></li>
+								<li class="tsd-kind-external-module"><a href="modules/_processes_mailbox_.html" class="tsd-kind-icon">"processes/mailbox"</a></li>
+								<li class="tsd-kind-external-module"><a href="modules/_processes_process_.html" class="tsd-kind-icon">"processes/process"</a></li>
+								<li class="tsd-kind-external-module"><a href="modules/_processes_process_system_.html" class="tsd-kind-icon">"processes/process_<wbr>system"</a></li>
+								<li class="tsd-kind-external-module"><a href="modules/_processes_schedulers_default_scheduler_.html" class="tsd-kind-icon">"processes/schedulers/default_<wbr>scheduler"</a></li>
+								<li class="tsd-kind-external-module"><a href="modules/_processes_schedulers_process_queue_.html" class="tsd-kind-icon">"processes/schedulers/process_<wbr>queue"</a></li>
+								<li class="tsd-kind-external-module"><a href="modules/_processes_schedulers_request_animation_scheduler_.html" class="tsd-kind-icon">"processes/schedulers/request_<wbr>animation_<wbr>scheduler"</a></li>
+								<li class="tsd-kind-external-module"><a href="modules/_processes_states_.html" class="tsd-kind-icon">"processes/states"</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
-					<li class="globals  ">
+					<li class="globals current ">
 						<a href="globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
