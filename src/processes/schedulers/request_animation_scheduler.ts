@@ -5,7 +5,7 @@ class RequestAnimationScheduler extends DefaultScheduler {
     super(throttle, reductions_per_process)
   }
 
-  _run(run) {
+  _run(run: FrameRequestCallback) {
     window.requestAnimationFrame(run)
   }
 }

@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 module.exports = {
   devtool: 'source-map',
   entry: {
-    all: ['@babel/polyfill', __dirname + '/src/docs/js/index.js'],
+    all: ['@babel/polyfill', __dirname + '/src/docs/js/index.ts'],
   },
   output: {
     path: __dirname + '/docs',
@@ -19,6 +19,11 @@ module.exports = {
           MiniCssExtractPlugin.loader,
           {loader: 'css-loader', options: {sourceMap: true}},
         ],
+      },
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
       },
       {
         test: /\.js$/,
@@ -38,4 +43,7 @@ module.exports = {
       template: __dirname + '/src/docs/html/index.html',
     }),
   ],
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
 }

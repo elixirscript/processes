@@ -1,30 +1,40 @@
-'use strict'
-
-/* @flow */
+import {PID} from 'erlang-types'
 import States from './states'
+import Mailbox from './mailbox'
+import System from './process_system'
 
-function is_sleep(value) {
+function is_sleep(value: any) {
   return Array.isArray(value) && value[0] === States.SLEEP
 }
 
-function is_receive(value) {
+function is_receive(value: any) {
   return Array.isArray(value) && value[0] === States.RECEIVE
 }
 
-function receive_timed_out(value) {
+function receive_timed_out(value: any) {
   return value[2] != null && value[2] < Date.now()
 }
 
 class Process {
-  constructor(pid, func, args, mailbox, system) {
-    this.pid = pid
+  pid: PID
+  func: Function
+  args: any[]
+  mailbox: Mailbox
+  system: System
+  status: symbol
+  dict: Map<any, any>
+  flags: Map<symbol, any>
+  monitors: any[]
+
+  constructor(system: System, func: Function, args: any[]) {
+    this.system = system
     this.func = func
     this.args = args
-    this.mailbox = mailbox
-    this.system = system
     this.status = States.STOPPED
-    this.dict = {}
-    this.flags = {}
+    this.pid = new PID()
+    this.mailbox = new Mailbox()
+    this.dict = new Map()
+    this.flags = new Map()
     this.monitors = []
   }
 
@@ -51,20 +61,20 @@ class Process {
     this.system.exit(retval)
   }
 
-  process_flag(flag, value) {
-    const old_value = this.flags[flag]
-    this.flags[flag] = value
+  process_flag(flag: symbol, value: any): any {
+    const old_value = this.flags.get(flag)
+    this.flags.set(flag, value)
     return old_value
   }
 
-  is_trapping_exits() {
+  is_trapping_exits(): boolean {
     return (
-      this.flags[Symbol.for('trap_exit')] &&
-      this.flags[Symbol.for('trap_exit')] == true
+      this.flags.has(Symbol.for('trap_exit')) &&
+      this.flags.get(Symbol.for('trap_exit')) == true
     )
   }
 
-  signal(reason) {
+  signal(reason: any): void {
     if (reason !== States.NORMAL) {
       console.error(reason)
     }
@@ -72,7 +82,7 @@ class Process {
     this.system.remove_proc(this.pid, reason)
   }
 
-  receive(fun) {
+  receive(fun: Function) {
     let value = States.NOMATCH
     let messages = this.mailbox.get()
 
@@ -85,7 +95,7 @@ class Process {
         }
       } catch (e) {
         if (e.constructor.name != 'MatchError') {
-          this.exit(e)
+          this.system.exit(e)
         }
       }
     }
@@ -93,7 +103,7 @@ class Process {
     return value
   }
 
-  run(machine, step) {
+  run(machine: Generator, step: any): void {
     const function_scope = this
 
     if (!step.done) {

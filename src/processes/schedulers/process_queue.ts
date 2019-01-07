@@ -1,7 +1,10 @@
-'use strict'
+import {PID} from 'erlang-types'
 
-export default class ProcessQueue {
-  constructor(pid) {
+class ProcessQueue {
+  pid: PID
+  tasks: Function[]
+
+  constructor(pid: PID) {
     this.pid = pid
     this.tasks = []
   }
@@ -10,7 +13,7 @@ export default class ProcessQueue {
     return this.tasks.length === 0
   }
 
-  add(task) {
+  add(task: any) {
     this.tasks.push(task)
   }
 
@@ -18,3 +21,5 @@ export default class ProcessQueue {
     return this.tasks.shift()
   }
 }
+
+export default ProcessQueue

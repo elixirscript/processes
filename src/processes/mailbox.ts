@@ -1,26 +1,23 @@
-'use strict'
-
-/* @flow */
-
 class Mailbox {
+  messages: any[]
   constructor() {
     this.messages = []
   }
 
-  deliver(message) {
+  deliver(message: any): any {
     this.messages.push(message)
     return message
   }
 
-  get() {
+  get(): any[] {
     return this.messages
   }
 
-  isEmpty() {
+  isEmpty(): boolean {
     return this.messages.length === 0
   }
 
-  removeAt(index) {
+  removeAt(index: number): any {
     this.messages.splice(index, 1)
   }
 }
