@@ -38,8 +38,6 @@
 							</div>
 							<input type="checkbox" id="tsd-filter-inherited" checked />
 							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
 							<input type="checkbox" id="tsd-filter-only-exported" />
 							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
 						</div>
@@ -68,19 +66,97 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>External modules</h3>
+							<h3>Classes</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-external-module"><a href="modules/_index_.html" class="tsd-kind-icon">"index"</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/_processes_mailbox_.html" class="tsd-kind-icon">"processes/mailbox"</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/_processes_process_.html" class="tsd-kind-icon">"processes/process"</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/_processes_process_system_.html" class="tsd-kind-icon">"processes/process_<wbr>system"</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/_processes_schedulers_default_scheduler_.html" class="tsd-kind-icon">"processes/schedulers/default_<wbr>scheduler"</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/_processes_schedulers_process_queue_.html" class="tsd-kind-icon">"processes/schedulers/process_<wbr>queue"</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/_processes_schedulers_request_animation_scheduler_.html" class="tsd-kind-icon">"processes/schedulers/request_<wbr>animation_<wbr>scheduler"</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/_processes_states_.html" class="tsd-kind-icon">"processes/states"</a></li>
+								<li class="tsd-kind-class"><a href="classes/defaultscheduler.html" class="tsd-kind-icon">Default<wbr>Scheduler</a></li>
+								<li class="tsd-kind-class"><a href="classes/mailbox.html" class="tsd-kind-icon">Mailbox</a></li>
+								<li class="tsd-kind-class"><a href="classes/process.html" class="tsd-kind-icon">Process</a></li>
+								<li class="tsd-kind-class"><a href="classes/processqueue.html" class="tsd-kind-icon">Process<wbr>Queue</a></li>
+								<li class="tsd-kind-class"><a href="classes/processsystem.html" class="tsd-kind-icon">Process<wbr>System</a></li>
+								<li class="tsd-kind-class"><a href="classes/requestanimationscheduler.html" class="tsd-kind-icon">Request<wbr>Animation<wbr>Scheduler</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section tsd-is-not-exported">
+							<h3>Functions</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-function tsd-is-not-exported"><a href="globals.html#is_receive" class="tsd-kind-icon">is_<wbr>receive</a></li>
+								<li class="tsd-kind-function tsd-is-not-exported"><a href="globals.html#is_sleep" class="tsd-kind-icon">is_<wbr>sleep</a></li>
+								<li class="tsd-kind-function tsd-is-not-exported"><a href="globals.html#receive_timed_out" class="tsd-kind-icon">receive_<wbr>timed_<wbr>out</a></li>
 							</ul>
 						</section>
 					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-not-exported">
+				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-is-not-exported">
+					<a name="is_receive" class="tsd-anchor"></a>
+					<h3>is_<wbr>receive</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">is_<wbr>receive<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/elixirscript/processes/blob/c61d3f0/src/processes/process.ts#L10">processes/process.ts:10</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-is-not-exported">
+					<a name="is_sleep" class="tsd-anchor"></a>
+					<h3>is_<wbr>sleep</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">is_<wbr>sleep<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/elixirscript/processes/blob/c61d3f0/src/processes/process.ts#L6">processes/process.ts:6</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-is-not-exported">
+					<a name="receive_timed_out" class="tsd-anchor"></a>
+					<h3>receive_<wbr>timed_<wbr>out</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">receive_<wbr>timed_<wbr>out<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/elixirscript/processes/blob/c61d3f0/src/processes/process.ts#L14">processes/process.ts:14</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -90,34 +166,37 @@
 					<li class="globals current ">
 						<a href="globals.html"><em>Globals</em></a>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_index_.html">"index"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_processes_mailbox_.html">"processes/mailbox"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_processes_process_.html">"processes/process"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_processes_process_system_.html">"processes/process_<wbr>system"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_processes_schedulers_default_scheduler_.html">"processes/schedulers/default_<wbr>scheduler"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_processes_schedulers_process_queue_.html">"processes/schedulers/process_<wbr>queue"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_processes_schedulers_request_animation_scheduler_.html">"processes/schedulers/request_<wbr>animation_<wbr>scheduler"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_processes_states_.html">"processes/states"</a>
-					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-class">
+						<a href="classes/defaultscheduler.html" class="tsd-kind-icon">Default<wbr>Scheduler</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/mailbox.html" class="tsd-kind-icon">Mailbox</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/process.html" class="tsd-kind-icon">Process</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/processqueue.html" class="tsd-kind-icon">Process<wbr>Queue</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/processsystem.html" class="tsd-kind-icon">Process<wbr>System</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/requestanimationscheduler.html" class="tsd-kind-icon">Request<wbr>Animation<wbr>Scheduler</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#is_receive" class="tsd-kind-icon">is_<wbr>receive</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#is_sleep" class="tsd-kind-icon">is_<wbr>sleep</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#receive_timed_out" class="tsd-kind-icon">receive_<wbr>timed_<wbr>out</a>
+					</li>
 				</ul>
 			</nav>
 		</div>
