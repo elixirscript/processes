@@ -2,6 +2,14 @@
 
 Experiment to reproduce Erlang style processes in browser. The api follows the one from Erlang. All are found on the `ProcessSystem` class
 
+#### Documentation
+
+https://elixirscript.github.io/processes/
+
+#### Demo
+
+https://elixirscript.github.io/processes/demo/
+
 #### Usage
 
 - First, import the ProcessSystem create a new instance of one.
