@@ -7,6 +7,9 @@ import States from './states'
 import DefaultScheduler from './schedulers/default_scheduler'
 import {PID, Reference, Tuple} from 'erlang-types'
 
+/**
+ * Manages all of the processes.
+ */
 class ProcessSystem {
   pids: Map<PID, Process>
   mailboxes: Map<PID, Mailbox>
@@ -44,7 +47,11 @@ class ProcessSystem {
     }
   }
 
-  spawn(...args: any[]) {
+  /**
+   * Starts a process represented by the given generator function
+   * @param args Either a generator function or a module, function and arguments
+   */
+  spawn(...args: any[]): PID {
     if (args.length === 1) {
       let fun = args[0]
       return this.add_proc(fun, [], false, false).pid
@@ -57,7 +64,11 @@ class ProcessSystem {
     }
   }
 
-  spawn_link(...args: any[]) {
+  /**
+   * Starts a process using the generator function from the specified module
+   * @param args Either a generator function or a module, function and arguments
+   */
+  spawn_link(...args: any[]): PID {
     if (args.length === 1) {
       let fun = args[0]
       return this.add_proc(fun, [], true, false).pid
@@ -70,6 +81,10 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * links the current process with the process from the given pid
+   * @param pid pid of the process to link to
+   */
   link(pid: PID): void {
     const currentProcessPid = this.pid()
     if (currentProcessPid != null) {
@@ -83,6 +98,10 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * unlinks the current process from the process from the given pid
+   * @param pid pid of the process to link to
+   */
   unlink(pid: PID): void {
     const currentProcessPid = this.pid()
     if (currentProcessPid != null) {
@@ -96,7 +115,11 @@ class ProcessSystem {
     }
   }
 
-  spawn_monitor(...args: any[]) {
+  /**
+   * Spawns a process and then monitors it
+   * @param args Either a generator function or a module, function and arguments
+   */
+  spawn_monitor(...args: any[]): [PID, Reference] {
     if (args.length === 1) {
       let fun = args[0]
       let process = this.add_proc(fun, [], false, true)
@@ -111,7 +134,11 @@ class ProcessSystem {
     }
   }
 
-  monitor(pid: PID) {
+  /**
+   * Monitors the given process
+   * @param pid pid of the process to link to
+   */
+  monitor(pid: PID): Reference | null {
     const real_pid = this.pidof(pid)
     const ref = this.make_ref()
 
@@ -136,9 +163,15 @@ class ProcessSystem {
         return ref
       }
     }
+
+    return null
   }
 
-  demonitor(ref: Reference) {
+  /**
+   * Removes the monitor
+   * @param ref Reference to monitor
+   */
+  demonitor(ref: Reference): Boolean {
     if (this.monitors.has(ref)) {
       this.monitors.delete(ref)
       return true
@@ -147,7 +180,11 @@ class ProcessSystem {
     return false
   }
 
-  set_current(id: any) {
+  /**
+   * Sets the current process
+   * @param id PID or name of process
+   */
+  set_current(id: PID | any): void {
     let pid = this.pidof(id)
     if (pid) {
       const next = this.pids.get(pid)
@@ -203,7 +240,12 @@ class ProcessSystem {
     }
   }
 
-  register(name: any, pid: PID) {
+  /**
+   * registers the given name to the pid
+   * @param name The name to give the process
+   * @param pid The pid of the process
+   */
+  register(name: any, pid: PID): void {
     if (!this.names.has(name)) {
       this.names.set(name, pid)
     } else {
@@ -211,15 +253,26 @@ class ProcessSystem {
     }
   }
 
-  whereis(name: any) {
+  /**
+   * Finds a process by the given name
+   * @param name the name of the process
+   */
+  whereis(name: any): any | null {
     return this.names.has(name) ? this.names.get(name) : null
   }
 
-  registered() {
+  /**
+   * returns the liast of names that are registered
+   */
+  registered(): IterableIterator<any> {
     return this.names.keys()
   }
 
-  unregister(pid: PID) {
+  /**
+   * unregisters the names associated with the pid
+   * @param pid The pid of the process
+   */
+  unregister(pid: PID): void {
     for (let name of this.names.keys()) {
       if (this.names.has(name) && this.names.get(name) === pid) {
         this.names.delete(name)
@@ -227,6 +280,9 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * Returns the PID of the current process
+   */
   pid(): PID | null {
     if (this.currentProcess) {
       return this.currentProcess.pid
@@ -235,7 +291,11 @@ class ProcessSystem {
     return null
   }
 
-  pidof(id: any) {
+  /**
+   * takes the input and tries to find the pid. Input can be a `pid`, `Process`, or name the pid is associated with
+   * @param id The registered name or pid of the process
+   */
+  pidof(id: PID | any): PID | null {
     if (id instanceof PID) {
       return this.pids.has(id) ? id : null
     } else if (id instanceof Process) {
@@ -248,7 +308,12 @@ class ProcessSystem {
     }
   }
 
-  send(id: any, msg: any) {
+  /**
+   * sends a message the the process represented by the pid
+   * @param id
+   * @param msg
+   */
+  send(id: any, msg: any): any {
     const pid = this.pidof(id)
 
     if (pid) {
@@ -269,6 +334,15 @@ class ProcessSystem {
     return msg
   }
 
+  /**
+   * Tells the current process to receive a message that the function can handle.
+   * If no match then the process is put in the suspended state until a message arrives
+   * or the timeout is reached.
+   * If the timeout is reached and no msg matches, then the timeoutFn is called
+   * @param fun
+   * @param timeout
+   * @param timeoutFn
+   */
   receive(fun: Function, timeout = 0, timeoutFn: () => boolean = () => true) {
     let DateTimeout = null
 
@@ -281,10 +355,18 @@ class ProcessSystem {
     return [States.RECEIVE, fun, DateTimeout, timeoutFn]
   }
 
+  /**
+   * puts the current process to sleep
+   * @param duration
+   */
   sleep(duration: number | symbol): [symbol, number | symbol] {
     return [States.SLEEP, duration]
   }
 
+  /**
+   * Suspends the current process
+   * @param fun
+   */
   suspend(fun: () => any): void {
     if (this.currentProcess) {
       this.currentProcess.status = States.SUSPENDED
@@ -292,6 +374,11 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * Makes current process go to sleep
+   * @param fun
+   * @param time
+   */
   delay(fun: () => any, time: number): void {
     if (this.currentProcess) {
       this.currentProcess.status = States.SLEEPING
@@ -302,6 +389,11 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * Schedules execution of a process reduction
+   * @param fun
+   * @param pid
+   */
   schedule(fun: () => any, pid?: PID): void {
     if (this.currentProcess) {
       const the_pid = pid != null ? pid : this.currentProcess.pid
@@ -309,6 +401,11 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * terminates the current process with the given reason.
+   * @param one
+   * @param two
+   */
   exit(one: PID | any, two?: any): void {
     let pid = null
     let reason = null
@@ -360,12 +457,25 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * terminates the current process with an error
+   * @param reason
+   */
   error(reason: any): void {
     if (this.currentProcess) {
       this.currentProcess.signal(reason)
     }
   }
 
+  /**
+   * Sets flags on the current process.
+    - Note: the only flag respected is the `Symbol.for("trap_exit")` flag.
+    If value is `true`, then exit signals from linked processes are turned into
+    messages and sent to the current processes mailbox.
+    If value is `false`, the exit is treated as normal and terminates the process.
+    Setting it to `true` is useful for supervising processes.
+   * @param args
+   */
   process_flag(...args: any[]): any {
     if (args.length == 2) {
       const flag = args[0]
@@ -387,12 +497,20 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * Adds a value to the current process's dictionary
+   * @param key
+   * @param value
+   */
   put(key: string, value: any): void {
     if (this.currentProcess) {
       this.currentProcess.dict.set(key, value)
     }
   }
 
+  /**
+   * Gets the current process's dictionary
+   */
   get_process_dict(): object {
     if (this.currentProcess) {
       return this.currentProcess.dict
@@ -401,6 +519,11 @@ class ProcessSystem {
     throw new Error('No Current Process')
   }
 
+  /**
+   * Gets a value from the current process's dictionary or the default if key not in dictionary
+   * @param key
+   * @param default_value
+   */
   get(key: string, default_value: any = null) {
     if (this.currentProcess && key in this.currentProcess.dict) {
       return this.currentProcess.dict.get(key)
@@ -409,6 +532,10 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * Gets all the keys from the current process's dictionary
+   * @param value
+   */
   get_keys(value: any): string[] {
     if (value) {
       let keys = []
@@ -431,7 +558,13 @@ class ProcessSystem {
     throw new Error('No Current Process')
   }
 
-  erase(key: string): void {
+  /**
+   * Removes the key and the associated value from the current process's dictionary
+   *
+   * If no key is given, removes all entries from the current process's dictionary
+   * @param key the key to remove
+   */
+  erase(key?: string): void {
     if (this.currentProcess) {
       if (key != null && this.currentProcess.dict.has(key)) {
         this.currentProcess.dict.delete(key)
@@ -441,20 +574,30 @@ class ProcessSystem {
     }
   }
 
+  /**
+   * Returns if the given pid is alive
+   * @param pid
+   */
   is_alive(pid: any) {
     const real_pid = this.pidof(pid)
     return real_pid != null
   }
 
+  /**
+   * Returns a list of all the pids
+   */
   list(): PID[] {
     return Array.from(this.pids.keys())
   }
 
+  /**
+   * Returns a unique reference
+   */
   make_ref(): Reference {
     return new Reference()
   }
 
-  get currentProcess(): Process | null {
+  private get currentProcess(): Process | null {
     if (this.current_process) {
       return this.current_process
     }

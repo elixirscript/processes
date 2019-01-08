@@ -1,6 +1,9 @@
 import { PID } from 'erlang-types';
 import Mailbox from './mailbox';
 import System from './process_system';
+/**
+ * A Process. Represents the basic atomic level of concurrency in the system
+ */
 declare class Process {
     pid: PID;
     func: Function;

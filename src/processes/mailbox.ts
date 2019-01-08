@@ -1,5 +1,10 @@
+/**
+ * Manages a process's messages.
+ * A message is anything sent to the process from another
+ * process
+ */
 class Mailbox {
-  messages: any[]
+  private messages: any[]
   constructor() {
     this.messages = []
   }

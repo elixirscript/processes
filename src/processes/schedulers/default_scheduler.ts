@@ -1,6 +1,12 @@
 import {PID} from 'erlang-types'
 import ProcessQueue from './process_queue'
 
+/**
+ * Default scheduler for the process system.
+ * Schedules process execution using setTimeout.
+ * The most generic scheduler and maybe not good for
+ * anything with dom manipulation.
+ */
 class DefaultScheduler {
   isRunning: boolean
   invokeLater: (callback: () => void) => void

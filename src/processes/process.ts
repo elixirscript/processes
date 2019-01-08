@@ -15,6 +15,9 @@ function receive_timed_out(value: any) {
   return value[2] != null && value[2] < Date.now()
 }
 
+/**
+ * A Process. Represents the basic atomic level of concurrency in the system
+ */
 class Process {
   pid: PID
   func: Function

@@ -1,6 +1,6 @@
 {
   "name": "erlang-processes",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Erlang style processes in JavaScript",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
